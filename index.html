@@ -127,19 +127,7 @@
             --input-bg-color: #fff;
         }
     </style>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-            const rootElement = document.documentElement;
-            if (prefersDarkScheme.matches) {
-                rootElement.classList.remove('light-mode');
-                toggleIcon.src = 'https://navercorp.com/img/common/ic-lightmode-w.svg';
-            } else {
-                rootElement.classList.add('light-mode');
-                toggleIcon.src = 'https://navercorp.com/img/common/ic-darkmode.svg';
-            }
-        });
-    </script>
+    
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
@@ -174,6 +162,46 @@
             }
         });
     </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+            const rootElement = document.documentElement;
+            const toggleIcon = document.getElementById('toggle-icon');
+            if (prefersDarkScheme.matches) {
+                rootElement.classList.remove('light-mode');
+                toggleIcon.src = 'https://navercorp.com/img/common/ic-lightmode-w.svg';
+            } else {
+                rootElement.classList.add('light-mode');
+                toggleIcon.src = 'https://navercorp.com/img/common/ic-darkmode.svg';
+            }
+
+            // 모바일 안내 메시지 표시
+            const userAgent = navigator.userAgent.toLowerCase();
+            if (/android|iphone|ipad|ipod/.test(userAgent)) {
+                const warningMessage = document.createElement('div');
+                warningMessage.textContent = 'PC에서 접속하는 것을 권장합니다.';
+                warningMessage.style.position = 'fixed';
+                warningMessage.style.top = '50%';
+                warningMessage.style.left = '50%';
+                warningMessage.style.transform = 'translate(-50%, -50%)';
+                warningMessage.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+                warningMessage.style.color = 'white';
+                warningMessage.style.padding = '20px';
+                warningMessage.style.borderRadius = '10px';
+                warningMessage.style.zIndex = '1000';
+                document.body.appendChild(warningMessage);
+
+                setTimeout(() => {
+                    document.body.removeChild(warningMessage);
+                }, 3000);
+            }
+
+            const redirectButton = document.getElementById('redirect-button');
+            redirectButton.addEventListener('click', () => {
+                window.location.href = 'https://jisungeda55.github.io/imageplus/imagex';
+            });
+        });
+    </script>
 </head>
 <body>
     <div>
@@ -190,6 +218,7 @@
             <button id="toggle-mode">
                 <img id="toggle-icon" src="https://navercorp.com/img/common/ic-darkmode.svg" alt="Toggle Mode" width="30" height="30">
             </button>
+            <button id="redirect-button" style="position: absolute; top: 80px; right: 20px; background-color: #00ffa3e6; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; border: none;"><img src="https://www.svgrepo.com/show/532225/table-layout.svg" alt="Redirect" width="30" height="30"></button>
         </div>
     </div>
 

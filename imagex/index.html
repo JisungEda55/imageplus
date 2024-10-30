@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>X Multiply</title>
+    <title>X Image</title>
     <link rel="icon" type="image/png" href="https://i.ibb.co/YTq2tCG/iconx.webp">
     <style>
         @font-face {
@@ -107,79 +107,30 @@
             <canvas id="canvas" width="1920" height="1080"></canvas>
         </div>
         <div id="controls">
+            <button id="toggle-mode" style="position: absolute; top: 20px; right: 20px; background-color: #444; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer;"><img id="toggle-icon" src="https://navercorp.com/img/common/ic-darkmode.svg" alt="Toggle Mode" width="30" height="30"></button>
             <label for="imageInput" id="file-upload-label" style="display: inline-block; background-color: #00ffa3e6; color: black; padding: 5px; border-radius: 50%; cursor: pointer; font-size: 30px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;"><img src="https://www.svgrepo.com/show/522234/plus.svg" alt="Add File" width="30" height="30"></label>
             <input type="file" id="imageInput" multiple accept="image/*" style="display: none;">
             <button id="save-button">이미지로 저장</button>
-            <button id="toggle-mode">
-                <img id="toggle-icon" src="https://navercorp.com/img/common/ic-darkmode.svg" alt="Toggle Mode" width="30" height="30">
-            </button>
+            <button id="redirect-button" style="position: absolute; top: 80px; right: 20px; background-color: #00ffa3e6; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; border: none;"><img src="https://www.svgrepo.com/show/532225/table-layout.svg" alt="Redirect" width="30" height="30"></button>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-            const rootElement = document.documentElement;
-            if (prefersDarkScheme.matches) {
-                rootElement.classList.remove('light-mode');
-                toggleIcon.src = 'https://navercorp.com/img/common/ic-lightmode-w.svg';
-            } else {
-                rootElement.classList.add('light-mode');
-                toggleIcon.src = 'https://navercorp.com/img/common/ic-darkmode.svg';
-            }
-        });
-
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        const imageInput = document.getElementById('imageInput');
-        const saveButton = document.getElementById('save-button');
+    document.addEventListener('DOMContentLoaded', () => {
+        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+        const rootElement = document.documentElement;
         const toggleModeButton = document.getElementById('toggle-mode');
         const toggleIcon = document.getElementById('toggle-icon');
 
-        imageInput.addEventListener('change', handleImageUpload);
-
-        function handleImageUpload(event) {
-            const files = event.target.files;
-            const images = [];
-
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const img = new Image();
-                img.src = URL.createObjectURL(file);
-                images.push(img);
-            }
-
-            Promise.all(images.map(img => new Promise((resolve) => {
-                img.onload = () => resolve(img);
-            }))).then(loadedImages => {
-                drawImages(loadedImages);
-            });
+        if (prefersDarkScheme.matches) {
+            rootElement.classList.remove('light-mode');
+            toggleIcon.src = 'https://navercorp.com/img/common/ic-lightmode-w.svg';
+        } else {
+            rootElement.classList.add('light-mode');
+            toggleIcon.src = 'https://navercorp.com/img/common/ic-darkmode.svg';
         }
-
-        function drawImages(images) {
-            const cols = Math.ceil(Math.sqrt(images.length));
-            const rows = Math.ceil(images.length / cols);
-            const imgWidth = canvas.width / cols;
-            const imgHeight = canvas.height / rows;
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            images.forEach((img, index) => {
-                const x = (index % cols) * imgWidth;
-                const y = Math.floor(index / cols) * imgHeight;
-                ctx.drawImage(img, x, y, imgWidth, imgHeight);
-            });
-        }
-
-        saveButton.addEventListener('click', () => {
-            const link = document.createElement('a');
-            link.download = 'collage.png';
-            link.href = canvas.toDataURL();
-            link.click();
-        });
 
         toggleModeButton.addEventListener('click', () => {
-            const rootElement = document.documentElement;
             rootElement.classList.toggle('light-mode');
             if (rootElement.classList.contains('light-mode')) {
                 toggleIcon.src = 'https://navercorp.com/img/common/ic-darkmode-on.png';
@@ -187,6 +138,65 @@
                 toggleIcon.src = 'https://navercorp.com/img/common/ic-lightmode-w.svg';
             }
         });
+
+        // 리다이렉트 버튼 이벤트 리스너
+        const redirectButton = document.getElementById('redirect-button');
+        redirectButton.addEventListener('click', () => {
+            window.location.href = 'https://jisungeda55.github.io/imageplus/imagex';
+        });
+    });
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const imageInput = document.getElementById('imageInput');
+    const saveButton = document.getElementById('save-button');
+    let uploadedImages = [];
+
+    // 이미지 업로드 이벤트
+    imageInput.addEventListener('change', (event) => {
+        const files = event.target.files;
+        uploadedImages = [];
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+                uploadedImages.push(img);
+                drawCanvas();
+            };
+            img.src = URL.createObjectURL(file);
+        }
+    });
+
+    // 캔버스에 이미지 그리기
+    function drawCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--bg-color');
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const cols = Math.ceil(Math.sqrt(uploadedImages.length));
+        const rows = Math.ceil(uploadedImages.length / cols);
+        const imgWidth = canvas.width / cols;
+        const imgHeight = canvas.height / rows;
+
+        uploadedImages.forEach((img, index) => {
+            const x = (index % cols) * imgWidth;
+            const y = Math.floor(index / cols) * imgHeight;
+            ctx.drawImage(img, x, y, imgWidth, imgHeight);
+        });
+    }
+
+    // 이미지 저장 버튼 클릭 이벤트
+    saveButton.addEventListener('click', () => {
+        const link = document.createElement('a');
+        const now = new Date();
+        const timeString = `${now.getFullYear().toString().slice(2)}.${(now.getMonth() + 1).toString().padStart(2, '0')}.${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}.${now.getMinutes().toString().padStart(2, '0')}.${now.getSeconds().toString().padStart(2, '0')}`;
+        link.download = `${timeString}.png`;
+        link.href = canvas.toDataURL();
+        link.click();
+    });
     </script>
+
 </body>
 </html>

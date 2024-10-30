@@ -151,6 +151,7 @@
     const imageInput = document.getElementById('imageInput');
     const saveButton = document.getElementById('save-button');
     let uploadedImages = [];
+    let uploadedImagesWithNames = [];
 
     // 이미지 업로드 이벤트
     imageInput.addEventListener('change', (event) => {
@@ -162,12 +163,38 @@
             const img = new Image();
             img.crossOrigin = 'anonymous';
             img.onload = () => {
-                uploadedImages.push(img);
-                drawCanvas();
+                uploadedImagesWithNames.push({ image: img, name: file.name });
+                sortImagesByName();
+        drawCanvas();
             };
             img.src = URL.createObjectURL(file);
         }
     });
+
+    // 임의로 이미지 순서 섞기
+function shuffleImages() {
+    for (let i = uploadedImages.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [uploadedImages[i], uploadedImages[j]] = [uploadedImages[j], uploadedImages[i]];
+    }
+    sortImagesByName();
+        drawCanvas(); // 섞인 순서로 다시 그리기
+}
+
+// 버튼 추가
+// const shuffleButton = document.createElement('button');
+// shuffleButton.textContent = '이미지 순서 섞기';
+// document.getElementById('controls').appendChild(shuffleButton);
+
+// 섞기 버튼 클릭 이벤트
+// shuffleButton.addEventListener('click', shuffleImages);
+
+      
+    // 파일 이름으로 이미지 정렬
+    function sortImagesByName() {
+        uploadedImagesWithNames.sort((a, b) => a.name.localeCompare(b.name));
+        uploadedImages = uploadedImagesWithNames.map(item => item.image);
+    }
 
     // 캔버스에 이미지 그리기
     function drawCanvas() {

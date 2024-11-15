@@ -126,8 +126,13 @@
             --text-color: #1d1d1f;
             --input-bg-color: #fff;
         }
+        #file-size-warning {
+            color: red;
+            font-weight: bold;
+            margin-top: 10px;
+            display: none;
+        }
     </style>
-    
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
@@ -160,46 +165,6 @@
                     document.body.removeChild(warningMessage);
                 }, 3000);
             }
-        });
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-            const rootElement = document.documentElement;
-            const toggleIcon = document.getElementById('toggle-icon');
-            if (prefersDarkScheme.matches) {
-                rootElement.classList.remove('light-mode');
-                toggleIcon.src = 'https://navercorp.com/img/common/ic-lightmode-w.svg';
-            } else {
-                rootElement.classList.add('light-mode');
-                toggleIcon.src = 'https://navercorp.com/img/common/ic-darkmode.svg';
-            }
-
-            // 모바일 안내 메시지 표시
-            const userAgent = navigator.userAgent.toLowerCase();
-            if (/android|iphone|ipad|ipod/.test(userAgent)) {
-                const warningMessage = document.createElement('div');
-                warningMessage.textContent = 'PC에서 접속하는 것을 권장합니다.';
-                warningMessage.style.position = 'fixed';
-                warningMessage.style.top = '50%';
-                warningMessage.style.left = '50%';
-                warningMessage.style.transform = 'translate(-50%, -50%)';
-                warningMessage.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-                warningMessage.style.color = 'white';
-                warningMessage.style.padding = '20px';
-                warningMessage.style.borderRadius = '10px';
-                warningMessage.style.zIndex = '1000';
-                document.body.appendChild(warningMessage);
-
-                setTimeout(() => {
-                    document.body.removeChild(warningMessage);
-                }, 3000);
-            }
-
-            const redirectButton = document.getElementById('redirect-button');
-            redirectButton.addEventListener('click', () => {
-                window.location.href = 'https://jisungeda55.github.io/imageplus/imagex';
-            });
         });
     </script>
 </head>
@@ -215,13 +180,14 @@
             <input type="text" id="text-input" placeholder="하단 텍스트를 입력하세요">
             <input type="text" id="top-right-text-input" placeholder="우측 상단 텍스트를 입력하세요">
             <button id="save-button">이미지로 저장</button>
+            <button id="compress-button">압축 후 저장</button>
             <button id="toggle-mode">
                 <img id="toggle-icon" src="https://navercorp.com/img/common/ic-darkmode.svg" alt="Toggle Mode" width="30" height="30">
             </button>
             <button id="redirect-button" style="position: absolute; top: 80px; right: 20px; background-color: #00ffa3e6; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; border: none;"><img src="https://www.svgrepo.com/show/532225/table-layout.svg" alt="Redirect" width="30" height="30"></button>
         </div>
+        <div id="file-size-warning">2MB 초과</div>
     </div>
-
     <script>
         const canvas = document.getElementById('thumbnail');
         const ctx = canvas.getContext('2d');
@@ -232,8 +198,10 @@
         const formattedDate = `${today.getFullYear().toString().slice(2)}.${(today.getMonth() + 1).toString().padStart(2, '0')}.${today.getDate().toString().padStart(2, '0')}`;
         topRightTextInput.value = formattedDate;
         const saveButton = document.getElementById('save-button');
+        const compressButton = document.getElementById('compress-button');
         const toggleModeButton = document.getElementById('toggle-mode');
         const toggleIcon = document.getElementById('toggle-icon');
+        const fileSizeWarning = document.getElementById('file-size-warning');
         let uploadedImage = null;
         drawCanvas();
 
@@ -302,12 +270,46 @@
         // 이미지 저장 버튼 클릭 이벤트
         saveButton.addEventListener('click', () => {
             drawCanvas(); // 캔버스를 최신 상태로 그린 후 저장
-            const link = document.createElement('a');
-            const now = new Date();
-            const timeString = `${now.getFullYear().toString().slice(2)}.${(now.getMonth() + 1).toString().padStart(2, '0')}.${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}.${now.getMinutes().toString().padStart(2, '0')}.${now.getSeconds().toString().padStart(2, '0')}`;
-            link.download = `${timeString}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
+            canvas.toBlob((blob) => {
+                if (blob.size > 2 * 1024 * 1024) { // 2MB 초과 시 경고 표시
+                    const fileSizeMB = (blob.size / (1024 * 1024)).toFixed(2);
+                    fileSizeWarning.textContent = `파일 크기: ${fileSizeMB}MB (2MB 초과)`;
+                    fileSizeWarning.style.display = 'block';
+                } else {
+                    fileSizeWarning.style.display = 'none';
+                }
+                const link = document.createElement('a');
+                const now = new Date();
+                const timeString = `${now.getFullYear().toString().slice(2)}.${(now.getMonth() + 1).toString().padStart(2, '0')}.${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}.${now.getMinutes().toString().padStart(2, '0')}.${now.getSeconds().toString().padStart(2, '0')}`;
+                link.download = `${timeString}.png`;
+                link.href = URL.createObjectURL(blob);
+                link.click();
+            }, 'image/png');
+        });
+
+        // 압축 후 저장 버튼 클릭 이벤트
+        compressButton.addEventListener('click', () => {
+            drawCanvas(); // 캔버스를 최신 상태로 그린 후 압축하여 저장
+            let quality = 0.9;
+            function compressImage() {
+                canvas.toBlob((compressedBlob) => {
+                    if (compressedBlob.size > 2 * 1024 * 1024 && quality > 0.1) {
+                        quality -= 0.1;
+                        compressImage();
+                    } else {
+                        const fileSizeMB = (compressedBlob.size / (1024 * 1024)).toFixed(2);
+                        fileSizeWarning.textContent = `압축된 파일 크기: ${fileSizeMB}MB`;
+                        fileSizeWarning.style.display = 'block';
+                        const link = document.createElement('a');
+                        const now = new Date();
+                        const timeString = `${now.getFullYear().toString().slice(2)}.${(now.getMonth() + 1).toString().padStart(2, '0')}.${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}.${now.getMinutes().toString().padStart(2, '0')}.${now.getSeconds().toString().padStart(2, '0')}`;
+                        link.download = `${timeString}-compressed.jpg`;
+                        link.href = URL.createObjectURL(compressedBlob);
+                        link.click();
+                    }
+                }, 'image/jpeg', quality);
+            }
+            compressImage();
         });
 
         // 다크모드/라이트모드 전환 버튼 클릭 이벤트

@@ -179,6 +179,8 @@
             <input type="file" id="image-upload" accept="image/*" style="display: none;">
             <input type="text" id="text-input" placeholder="하단 텍스트를 입력하세요">
             <input type="text" id="top-right-text-input" placeholder="우측 상단 텍스트를 입력하세요">
+            <label for="logo-upload" id="logo-upload-label" style="display: inline-block; background-color: #00ffa3e6; color: black; padding: 5px; border-radius: 50%; cursor: pointer; font-size: 30px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;"><img src="https://www.svgrepo.com/show/522234/plus.svg" alt="Add Logo" width="30" height="30"></label>
+            <input type="file" id="logo-upload" accept="image/*" style="display: none;">
             <button id="save-button">이미지로 저장</button>
             <button id="compress-button">압축 후 저장</button>
             <button id="toggle-mode">
@@ -192,6 +194,7 @@
         const canvas = document.getElementById('thumbnail');
         const ctx = canvas.getContext('2d');
         const imageUpload = document.getElementById('image-upload');
+        const logoUpload = document.getElementById('logo-upload');
         const textInput = document.getElementById('text-input');
         const topRightTextInput = document.getElementById('top-right-text-input');
         const today = new Date();
@@ -203,6 +206,7 @@
         const toggleIcon = document.getElementById('toggle-icon');
         const fileSizeWarning = document.getElementById('file-size-warning');
         let uploadedImage = null;
+        let uploadedLogo = null;
         drawCanvas();
 
         // 이미지 업로드 이벤트
@@ -213,6 +217,20 @@
                 img.crossOrigin = 'anonymous';
                 img.onload = () => {
                     uploadedImage = img;
+                    drawCanvas();
+                };
+                img.src = URL.createObjectURL(file);
+            }
+        });
+
+        // 로고 업로드 이벤트
+        logoUpload.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => {
+                    uploadedLogo = img;
                     drawCanvas();
                 };
                 img.src = URL.createObjectURL(file);
@@ -242,7 +260,30 @@
                     ctx.drawImage(placeholderImage, 0, 0, canvas.width, canvas.height);
                 };
             }
-            
+
+            // 로고 추가 (좌측 상단, 원본 비율 유지)
+            if (uploadedLogo) {
+                const logoMaxWidth = 300;
+                const logoMaxHeight = 300;
+                let logoWidth = uploadedLogo.width;
+                let logoHeight = uploadedLogo.height;
+                const aspectRatio = logoWidth / logoHeight;
+
+                if (logoWidth > logoMaxWidth || logoHeight > logoMaxHeight) {
+                    if (aspectRatio > 1) {
+                        logoWidth = logoMaxWidth;
+                        logoHeight = logoMaxWidth / aspectRatio;
+                    } else {
+                        logoHeight = logoMaxHeight;
+                        logoWidth = logoMaxHeight * aspectRatio;
+                    }
+                }
+
+                const logoX = 40;
+                const logoY = 40;
+                ctx.drawImage(uploadedLogo, logoX, logoY, logoWidth, logoHeight);
+            }
+
             // 좌측 하단 텍스트 추가
             ctx.font = 'bold 180px SBAggroB';
             ctx.textAlign = 'left';
@@ -254,7 +295,7 @@
             const y = canvas.height - 76;
             ctx.strokeText(text, x, y);
             ctx.fillText(text, x, y);
-            
+
             // 우측 상단 텍스트 추가
             const topRightText = topRightTextInput.value;
             ctx.font = 'bold 100px RiaSans-ExtraBold';

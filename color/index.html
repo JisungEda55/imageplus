@@ -318,7 +318,7 @@ function drawCanvas() {
                     x += ctx.measureText(highlightedText).width;
                 } else if (part.startsWith('(b)') && part.endsWith('(b)')) {
                     const highlightedText = part.slice(3, -3);
-                    ctx.fillStyle = '#3f8bff';
+                    ctx.fillStyle = '#153cff';
                     ctx.strokeText(highlightedText, x, y);
                     ctx.fillText(highlightedText, x, y);
                     x += ctx.measureText(highlightedText).width;
@@ -382,7 +382,7 @@ topRightParts.forEach(part => {
         fillColor = '#00ffa3e6';
         part = part.slice(3, -3);
     } else if (part.startsWith('(b)') && part.endsWith('(b)')) {
-        fillColor = '#3f8bff';
+        fillColor = '#153cff';
         part = part.slice(3, -3);
     } else if (part.startsWith('(y)') && part.endsWith('(y)')) {
         fillColor = '#ffdb4d';

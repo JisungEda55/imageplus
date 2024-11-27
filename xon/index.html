@@ -62,27 +62,27 @@
 
         // 둥근 테두리를 그리는 함수
         function drawRoundedRect(x, y, width, height, radius) {
-    const halfLineWidth = ctx.lineWidth / 2; // 선 두께의 절반 계산
-    const adjustedX = x + halfLineWidth;
-    const adjustedY = y + halfLineWidth;
-    const adjustedWidth = width - ctx.lineWidth;
-    const adjustedHeight = height - ctx.lineWidth;
+            const halfLineWidth = ctx.lineWidth / 2; // 선 두께의 절반 계산
+            const adjustedX = x + halfLineWidth;
+            const adjustedY = y + halfLineWidth;
+            const adjustedWidth = width - ctx.lineWidth;
+            const adjustedHeight = height - ctx.lineWidth;
 
-    ctx.beginPath();
-    ctx.moveTo(adjustedX + radius, adjustedY);
-    ctx.lineTo(adjustedX + adjustedWidth - radius, adjustedY);
-    ctx.arc(adjustedX + adjustedWidth - radius, adjustedY + radius, radius, Math.PI * 1.5, 0);
-    ctx.lineTo(adjustedX + adjustedWidth, adjustedY + adjustedHeight - radius);
-    ctx.arc(adjustedX + adjustedWidth - radius, adjustedY + adjustedHeight - radius, radius, 0, Math.PI * 0.5);
-    ctx.lineTo(adjustedX + radius, adjustedY + adjustedHeight);
-    ctx.arc(adjustedX + radius, adjustedY + adjustedHeight - radius, radius, Math.PI * 0.5, Math.PI);
-    ctx.lineTo(adjustedX, adjustedY + radius);
-    ctx.arc(adjustedX + radius, adjustedY + radius, radius, Math.PI, Math.PI * 1.5);
-    ctx.closePath();
+            ctx.beginPath();
+            ctx.moveTo(adjustedX + radius, adjustedY);
+            ctx.lineTo(adjustedX + adjustedWidth - radius, adjustedY);
+            ctx.arc(adjustedX + adjustedWidth - radius, adjustedY + radius, radius, Math.PI * 1.5, 0);
+            ctx.lineTo(adjustedX + adjustedWidth, adjustedY + adjustedHeight - radius);
+            ctx.arc(adjustedX + adjustedWidth - radius, adjustedY + adjustedHeight - radius, radius, 0, Math.PI * 0.5);
+            ctx.lineTo(adjustedX + radius, adjustedY + adjustedHeight);
+            ctx.arc(adjustedX + radius, adjustedY + adjustedHeight - radius, radius, Math.PI * 0.5, Math.PI);
+            ctx.lineTo(adjustedX, adjustedY + radius);
+            ctx.arc(adjustedX + radius, adjustedY + radius, radius, Math.PI, Math.PI * 1.5);
+            ctx.closePath();
 
-    ctx.lineJoin = "round"; // 선 연결을 둥글게 처리
-    ctx.stroke();
-}
+            ctx.lineJoin = "round"; // 선 연결을 둥글게 처리
+            ctx.stroke();
+        }
 
         function drawCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -95,7 +95,7 @@
                 // 둥근 테두리 그리기
                 ctx.strokeStyle = '#ff0000'; // 테두리 색상
                 ctx.lineWidth = 8; // 테두리 두께
-                drawRoundedRect(5, 5, canvas.width - 10, canvas.height - 10, 38); // 반경 50px 테두리
+                drawRoundedRect(5, 5, canvas.width - 10, canvas.height - 10, 38); // 반경 38px 테두리
             }
         }
 
@@ -112,17 +112,18 @@
         });
 
         saveButton.addEventListener('click', () => {
-    const now = new Date();
-    const formattedDate = `${now.getFullYear().toString().slice(2)}.${(now.getMonth() + 1).toString().padStart(2, '0')}.${now.getDate().toString().padStart(2, '0')}`;
-    const formattedTime = `${now.getHours().toString().padStart(2, '0')}.${now.getMinutes().toString().padStart(2, '0')}.${now.getSeconds().toString().padStart(2, '0')}`;
-    const fileName = `${formattedDate}_${formattedTime}.png`;
+            const now = new Date();
+            const formattedDate = `${now.getFullYear().toString().slice(2)}.${(now.getMonth() + 1).toString().padStart(2, '0')}.${now.getDate().toString().padStart(2, '0')}`;
+            const formattedTime = `${now.getHours().toString().padStart(2, '0')}.${now.getMinutes().toString().padStart(2, '0')}.${now.getSeconds().toString().padStart(2, '0')}`;
+            const fileName = `${formattedDate}_${formattedTime}.png`;
 
-    canvas.toBlob((blob) => {
-        const link = document.createElement('a');
-        link.download = fileName; // 생성된 파일명 사용
-        link.href = URL.createObjectURL(blob);
-        link.click();
-    });
+            canvas.toBlob((blob) => {
+                const link = document.createElement('a');
+                link.download = fileName; // 생성된 파일명 사용
+                link.href = URL.createObjectURL(blob);
+                link.click();
+            });
+        });
 
         drawCanvas();
     </script>

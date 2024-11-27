@@ -306,7 +306,7 @@ function drawCanvas() {
             parts.forEach(part => {
                 if (part.startsWith('(r)') && part.endsWith('(r)')) {
                     const highlightedText = part.slice(3, -3);
-                    ctx.fillStyle = '#fc3c1c';
+                    ctx.fillStyle = '#ff0000';
                     ctx.strokeText(highlightedText, x, y);
                     ctx.fillText(highlightedText, x, y);
                     x += ctx.measureText(highlightedText).width;
@@ -412,7 +412,7 @@ ctx.textAlign = 'left'; // 왼쪽 정렬로 설정하여 올바른 순서로 텍
 topRightParts.forEach(part => {
     let fillColor;
     if (part.startsWith('(r)') && part.endsWith('(r)')) {
-        fillColor = '#fc3c1c';
+        fillColor = '#ff0000';
         part = part.slice(3, -3);
     } else if (part.startsWith('(g)') && part.endsWith('(g)')) {
         fillColor = '#00ffa3e6';

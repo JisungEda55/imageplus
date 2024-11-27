@@ -246,46 +246,48 @@
         });
 
         // 캔버스에 이미지와 텍스트를 그리는 함수
-        function drawCanvas() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--bg-color');
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            if (uploadedImage) {
-                ctx.drawImage(uploadedImage, 0, 0, canvas.width, canvas.height);
+function drawCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--bg-color');
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 이미지 배경 추가
+    if (uploadedImage) {
+        ctx.drawImage(uploadedImage, 0, 0, canvas.width, canvas.height);
+    } else {
+        const placeholderImage = new Image();
+        placeholderImage.crossOrigin = 'anonymous';
+        placeholderImage.src = 'https://i.ibb.co/ZJBsrc9/plusdemo.webp';
+        placeholderImage.onload = () => {
+            ctx.drawImage(placeholderImage, 0, 0, canvas.width, canvas.height);
+        };
+    }
+
+    // 로고 추가 (좌측 상단, 원본 비율 유지)
+    if (uploadedLogo) {
+        const logoMaxWidth = 300;
+        const logoMaxHeight = 300;
+        let logoWidth = uploadedLogo.width;
+        let logoHeight = uploadedLogo.height;
+        const aspectRatio = logoWidth / logoHeight;
+
+        if (logoWidth > logoMaxWidth || logoHeight > logoMaxHeight) {
+            if (aspectRatio > 1) {
+                logoWidth = logoMaxWidth;
+                logoHeight = logoMaxWidth / aspectRatio;
             } else {
-                const placeholderImage = new Image();
-                placeholderImage.crossOrigin = 'anonymous';
-                placeholderImage.src = 'https://i.ibb.co/ZJBsrc9/plusdemo.webp';
-                placeholderImage.onload = () => {
-                    ctx.drawImage(placeholderImage, 0, 0, canvas.width, canvas.height);
-                };
+                logoHeight = logoMaxHeight;
+                logoWidth = logoMaxHeight * aspectRatio;
             }
+        }
 
-            // 로고 추가 (좌측 상단, 원본 비율 유지)
-            if (uploadedLogo) {
-                const logoMaxWidth = 300;
-                const logoMaxHeight = 300;
-                let logoWidth = uploadedLogo.width;
-                let logoHeight = uploadedLogo.height;
-                const aspectRatio = logoWidth / logoHeight;
+        const logoX = 40;
+        const logoY = 40;
+        ctx.drawImage(uploadedLogo, logoX, logoY, logoWidth, logoHeight);
+    }
 
-                if (logoWidth > logoMaxWidth || logoHeight > logoMaxHeight) {
-                    if (aspectRatio > 1) {
-                        logoWidth = logoMaxWidth;
-                        logoHeight = logoMaxWidth / aspectRatio;
-                    } else {
-                        logoHeight = logoMaxHeight;
-                        logoWidth = logoMaxHeight * aspectRatio;
-                    }
-                }
-
-                const logoX = 40;
-                const logoY = 40;
-                ctx.drawImage(uploadedLogo, logoX, logoY, logoWidth, logoHeight);
-            }
-
-            // 좌측 하단 텍스트 추가
-            const text = textInput.value;
+    // 좌측 하단 텍스트 추가
+    const text = textInput.value;
             const parts = text.split(/(\(r\).*?\(r\)|\(g\).*?\(g\)|\(b\).*?\(b\)|\(y\).*?\(y\)|\(k\).*?\(k\))/);
     
             let x = 45;
@@ -336,17 +338,106 @@
             });
     
             // 우측 상단 텍스트 추가
-            const topRightText = topRightTextInput.value;
-            ctx.font = 'bold 100px RiaSans-ExtraBold';
-            ctx.textAlign = 'right';
-            ctx.strokeStyle = 'black';
-            ctx.fillStyle = 'white';
-            const topRightX = canvas.width - 46;
-            const topRightY = 120;
-            ctx.strokeText(topRightText, topRightX, topRightY);
-            ctx.fillText(topRightText, topRightX, topRightY);
-        }
+const topRightText = topRightTextInput.value;
+const topRightParts = topRightText.split(/(\(r\).*?\(r\)|\(g\).*?\(g\)|\(b\).*?\(b\)|\(y\).*?\(y\)|\(k\).*?\(k\))/);
 
+let topRightX = canvas.width - 46; // 우측 여백
+const topRightY = 120;
+
+ctx.font = 'bold 100px RiaSans-ExtraBold';
+ctx.textAlign = 'left'; // 왼쪽에서 오른쪽으로 그리기 위해 설정
+
+// 전체 텍스트 길이를 먼저 계산하여 시작 위치를 설정합니다.
+let totalTextWidth = 0;
+topRightParts.forEach(part => {
+    if (part.startsWith('(r)') && part.endsWith('(r)')) {
+        part = part.slice(3, -3);
+    } else if (part.startsWith('(g)') && part.endsWith('(g)')) {
+        part = part.slice(3, -3);
+    } else if (part.startsWith('(b)') && part.endsWith('(b)')) {
+        part = part.slice(3, -3);
+    } else if (part.startsWith('(y)') && part.endsWith('(y)')) {
+        part = part.slice(3, -3);
+    } else if (part.startsWith('(k)') && part.endsWith('(k)')) {
+        part = part.slice(3, -3);
+    }
+    totalTextWidth += ctx.measureText(part).width;
+});
+
+// 우측 여백에서 전체 텍스트 길이를 뺀 위치를 시작점으로 설정합니다.
+topRightX = canvas.width - 46 - totalTextWidth;
+
+// 각 파트를 순차적으로 그립니다.
+topRightParts.forEach(part => {
+    let fillColor;
+    if (part.startsWith('(r)') && part.endsWith('(r)')) {
+        fillColor = '#fc3c1c';
+        part = part.slice(3, -3);
+    } else if (part.startsWith('(g)') && part.endsWith('(g)')) {
+        fillColor = '#00ffa3e6';
+        part = part.slice(3, -3);
+    } else if (part.startsWith('(b)') && part.endsWith('(b)')) {
+        fillColor = '#3f8bff';
+        part = part.slice(3, -3);
+    } else if (part.startsWith('(y)') && part.endsWith('(y)')) {
+        fillColor = '#ffdb4d';
+        part = part.slice(3, -3);
+    } else if (part.startsWith('(k)') && part.endsWith('(k)')) {
+        fillColor = '#1d1d1d';
+        part = part.slice(3, -3);
+    } else {
+        fillColor = 'white';
+    }
+
+    ctx.fillStyle = fillColor;
+    // 텍스트를 왼쪽에서 오른쪽으로 그립니다.
+    ctx.fillText(part, topRightX, topRightY);
+
+    // 다음 텍스트 부분을 그릴 위치를 이동합니다.
+    topRightX += ctx.measureText(part).width;
+});
+
+// 우측 여백을 기준으로 텍스트의 시작 위치를 설정합니다.
+topRightX -= totalTextWidth;
+
+ctx.font = 'bold 100px RiaSans-ExtraBold';
+ctx.textAlign = 'left'; // 왼쪽 정렬로 설정하여 올바른 순서로 텍스트 그리기
+
+// 각 파트를 순차적으로 그립니다
+topRightParts.forEach(part => {
+    let fillColor;
+    if (part.startsWith('(r)') && part.endsWith('(r)')) {
+        fillColor = '#fc3c1c';
+        part = part.slice(3, -3);
+    } else if (part.startsWith('(g)') && part.endsWith('(g)')) {
+        fillColor = '#00ffa3e6';
+        part = part.slice(3, -3);
+    } else if (part.startsWith('(b)') && part.endsWith('(b)')) {
+        fillColor = '#3f8bff';
+        part = part.slice(3, -3);
+    } else if (part.startsWith('(y)') && part.endsWith('(y)')) {
+        fillColor = '#ffdb4d';
+        part = part.slice(3, -3);
+    } else if (part.startsWith('(k)') && part.endsWith('(k)')) {
+        fillColor = '#1d1d1d';
+        part = part.slice(3, -3);
+    } else {
+        fillColor = 'white';
+    }
+
+    ctx.fillStyle = fillColor;
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 3;
+
+    // 텍스트를 왼쪽 정렬로 그립니다
+    ctx.strokeText(part, topRightX, topRightY);
+    ctx.fillText(part, topRightX, topRightY);
+
+    // 다음 텍스트 위치를 오른쪽으로 이동시킵니다
+    topRightX += ctx.measureText(part).width;
+});
+
+}
         // 이미지 저장 버튼 클릭 이벤트
         saveButton.addEventListener('click', () => {
             drawCanvas(); // 캔버스를 최신 상태로 그린 후 저장

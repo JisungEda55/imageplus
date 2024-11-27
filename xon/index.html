@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image XON</title>
+    <link rel="icon" type="image/png" href="https://i.ibb.co/YTq2tCG/iconx.webp">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1d1d1f;
+            color: #f5f5f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #canvas-container {
+            position: relative;
+            width: 960px;
+            height: 540px;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        #controls {
+            margin-top: 20px;
+            text-align: center;
+        }
+        input[type="file"], button {
+            font-size: 16px;
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button {
+            background-color: #00ffa3;
+            border: none;
+        }
+        button:hover {
+            background-color: #00b171;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <div id="canvas-container">
+            <canvas id="thumbnail" width="1920" height="1080" style="width: 960px; height: 540px;"></canvas>
+        </div>
+        <div id="controls">
+            <input type="file" id="image-upload" accept="image/*">
+            <button id="save-button">이미지로 저장</button>
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('thumbnail');
+        const ctx = canvas.getContext('2d');
+        const imageUpload = document.getElementById('image-upload');
+        const saveButton = document.getElementById('save-button');
+        let uploadedImage = null;
+
+        // 둥근 테두리를 그리는 함수
+        function drawRoundedRect(x, y, width, height, radius) {
+    const halfLineWidth = ctx.lineWidth / 2; // 선 두께의 절반 계산
+    const adjustedX = x + halfLineWidth;
+    const adjustedY = y + halfLineWidth;
+    const adjustedWidth = width - ctx.lineWidth;
+    const adjustedHeight = height - ctx.lineWidth;
+
+    ctx.beginPath();
+    ctx.moveTo(adjustedX + radius, adjustedY);
+    ctx.lineTo(adjustedX + adjustedWidth - radius, adjustedY);
+    ctx.arc(adjustedX + adjustedWidth - radius, adjustedY + radius, radius, Math.PI * 1.5, 0);
+    ctx.lineTo(adjustedX + adjustedWidth, adjustedY + adjustedHeight - radius);
+    ctx.arc(adjustedX + adjustedWidth - radius, adjustedY + adjustedHeight - radius, radius, 0, Math.PI * 0.5);
+    ctx.lineTo(adjustedX + radius, adjustedY + adjustedHeight);
+    ctx.arc(adjustedX + radius, adjustedY + adjustedHeight - radius, radius, Math.PI * 0.5, Math.PI);
+    ctx.lineTo(adjustedX, adjustedY + radius);
+    ctx.arc(adjustedX + radius, adjustedY + radius, radius, Math.PI, Math.PI * 1.5);
+    ctx.closePath();
+
+    ctx.lineJoin = "round"; // 선 연결을 둥글게 처리
+    ctx.stroke();
+}
+
+        function drawCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#1d1d1f"; // 배경색
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (uploadedImage) {
+                ctx.drawImage(uploadedImage, 0, 0, canvas.width, canvas.height);
+
+                // 둥근 테두리 그리기
+                ctx.strokeStyle = '#ff0000'; // 테두리 색상
+                ctx.lineWidth = 8; // 테두리 두께
+                drawRoundedRect(5, 5, canvas.width - 10, canvas.height - 10, 38); // 반경 50px 테두리
+            }
+        }
+
+        imageUpload.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const img = new Image();
+                img.onload = () => {
+                    uploadedImage = img;
+                    drawCanvas();
+                };
+                img.src = URL.createObjectURL(file);
+            }
+        });
+
+        saveButton.addEventListener('click', () => {
+            canvas.toBlob((blob) => {
+                const link = document.createElement('a');
+                link.download = `image_with_rounded_border.png`;
+                link.href = URL.createObjectURL(blob);
+                link.click();
+            });
+        });
+
+        drawCanvas();
+    </script>
+</body>
+</html>

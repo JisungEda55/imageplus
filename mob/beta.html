@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Image PLUS - Mobile & Pro</title>
+    <link rel="icon" type="image/png" href="https://i.ibb.co/YTq2tCG/iconx.webp">
+
+    <!-- 폰트 정의 -->
+    <style>
+        @font-face {
+            font-family: 'LINESeedKR-Bd';
+            src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_11-01@1.0/LINESeedKR-Bd.woff2') format('woff2');
+            font-weight: 700;
+        }
+
+        @font-face {
+            font-family: 'RiaSans-ExtraBold';
+            src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2410-1@1.0/RiaSans-ExtraBold.woff2') format('woff2');
+        }
+
+        @font-face {
+            font-family: 'SBAggroB';
+            src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroB.woff') format('woff');
+        }
+
+        :root {
+            --bg-color: #1d1d1f;
+            --panel-bg: #2c2c2e;
+            --text-color: #f5f5f7;
+            --accent-color: #00ffa3;
+            --accent-hover: #00b171;
+            --input-bg: #3a3a3c;
+            --border-radius: 16px;
+        }
+
+        .light-mode {
+            --bg-color: #f5f5f7;
+            --panel-bg: #ffffff;
+            --text-color: #1d1d1f;
+            --input-bg: #e5e5e7;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'LINESeedKR-Bd', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+            overflow-x: hidden;
+        }
+
+        header {
+            width: 100%;
+            padding: 10px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--panel-bg);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+        }
+
+        h1 span {
+            font-size: 0.75em;
+            opacity: 0.7;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+        }
+
+        .icon-btn:hover {
+            background-color: rgba(255, 255, 255, 0.06);
+        }
+
+        .pill-btn {
+            border-radius: 999px;
+            padding: 4px 12px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+
+        .pill-btn.accent {
+            background-color: var(--accent-color);
+            color: #000;
+        }
+
+        .pill-btn.secondary {
+            background-color: var(--input-bg);
+            color: var(--text-color);
+        }
+
+        #canvas-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 960px;
+            margin: 16px auto 8px auto;
+            padding: 0 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #thumbnail {
+            width: 100% !important;
+            height: auto !important;
+            max-width: 100%;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            touch-action: none;
+            cursor: grab;
+            background-color: #333;
+        }
+
+        #thumbnail:active {
+            cursor: grabbing;
+        }
+
+        .preview-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            max-width: 960px;
+            padding: 0 10px;
+            justify-content: flex-start;
+        }
+
+        .preview-card {
+            background-color: var(--panel-bg);
+            border-radius: 12px;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        #preview {
+            width: 160px;
+            height: 90px;
+            border-radius: 8px;
+            background-color: #111;
+        }
+
+        .preview-label {
+            font-size: 0.75rem;
+            color: #aaa;
+        }
+
+        .guide-text {
+            font-size: 0.8rem;
+            color: #888;
+            text-align: center;
+            margin: 4px 12px 12px 12px;
+        }
+
+        #controls-container {
+            width: 100%;
+            max-width: 960px;
+            padding: 0 10px 40px 10px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 10px;
+            background: var(--input-bg);
+            padding: 5px;
+            border-radius: 12px;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            padding: 8px 12px;
+            border: none;
+            background: transparent;
+            color: var(--text-color);
+            border-radius: 999px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .tab-btn.active {
+            background-color: var(--bg-color);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .control-group {
+            display: none;
+            background-color: var(--panel-bg);
+            padding: 16px;
+            border-radius: var(--border-radius);
+            margin-bottom: 12px;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .control-group.active {
+            display: flex;
+        }
+
+        .section-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .section-sub {
+            font-size: 0.75rem;
+            color: #888;
+            margin-bottom: 4px;
+        }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .input-label {
+            font-size: 0.8rem;
+            color: #aaa;
+            flex-shrink: 0;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 9px 10px;
+            border: none;
+            border-radius: 10px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 0.8rem;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            background: transparent;
+            width: 100%;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            margin-top: -6px;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            background: #888;
+            border-radius: 2px;
+        }
+
+        .file-btn {
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            padding: 10px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .file-btn:hover {
+            background-color: #444;
+        }
+
+        .light-mode .file-btn:hover {
+            background-color: #d1d1d1;
+        }
+
+        .action-btn {
+            background-color: var(--accent-color);
+            color: #000;
+            border: none;
+            padding: 11px 14px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.06s;
+        }
+
+        .action-btn.secondary {
+            background-color: #444;
+            color: #fff;
+        }
+
+        .action-btn:active {
+            transform: scale(0.98);
+        }
+
+        .toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toggle-row span {
+            font-size: 0.8rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 40px;
+            height: 20px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #555;
+            -webkit-transition: .2s;
+            transition: .2s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            -webkit-transition: .2s;
+            transition: .2s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .slider {
+            background-color: var(--accent-color);
+        }
+
+        .toggle-switch input:checked + .slider:before {
+            -webkit-transform: translateX(20px);
+            -ms-transform: translateX(20px);
+            transform: translateX(20px);
+        }
+
+        .divider {
+            border-top: 1px solid #555;
+            margin: 6px 0 6px 0;
+        }
+
+        .chip-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .chip {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background-color: var(--input-bg);
+            cursor: pointer;
+            border: none;
+        }
+
+        .chip:hover {
+            opacity: 0.9;
+        }
+
+        .small-label {
+            font-size: 0.75rem;
+            color: #aaa;
+        }
+
+        .radio-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            font-size: 0.8rem;
+        }
+
+        .radio-row label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .badge-button-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .badge-btn {
+            border-radius: 999px;
+            border: none;
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            background-color: #444;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .badge-btn:hover {
+            background-color: #666;
+        }
+
+        .recent-projects {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .recent-project-btn {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 999px;
+            border: none;
+            background-color: #444;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .project-info {
+            font-size: 0.75rem;
+            color: #aaa;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 0.95rem;
+            }
+            #controls-container {
+                padding-bottom: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Image PLUS <span>YT Thumbnail</span></h1>
+    <div class="header-right">
+        <button class="pill-btn secondary" id="lang-toggle">KR</button>
+
+        <button class="icon-btn" id="toggle-mode" title="라이트/다크 모드">
+            <img id="toggle-icon" src="https://navercorp.com/img/common/ic-darkmode.svg" alt="Toggle" width="22" height="22">
+        </button>
+
+        <button class="icon-btn" id="undo-btn" title="되돌리기 (Ctrl+Z)">
+            ⤺
+        </button>
+        <button class="icon-btn" id="redo-btn" title="다시하기 (Ctrl+Shift+Z)">
+            ⤻
+        </button>
+
+        <button class="icon-btn" id="redirect-button"
+                style="background:var(--accent-color); width:32px; height:32px; display:flex; align-items:center; justify-content:center;"
+                title="데스크톱 버전 열기">
+            <img src="https://www.svgrepo.com/show/532225/table-layout.svg" alt="Link" width="18" height="18">
+        </button>
+    </div>
+</header>
+
+<div id="canvas-wrapper">
+    <canvas id="thumbnail" width="1920" height="1080"></canvas>
+</div>
+
+<div class="preview-wrapper">
+    <div class="preview-card">
+        <canvas id="preview" width="320" height="180"></canvas>
+        <div>
+            <div class="preview-label">유튜브 목록 크기 미리보기</div>
+            <div class="preview-label" id="preview-size-label">320 x 180 (축소 보기)</div>
+        </div>
+    </div>
+</div>
+
+<p class="guide-text">
+    💡 캔버스에서 텍스트/로고를 터치 혹은 클릭 후 드래그해서 이동할 수 있습니다.  
+    (레이아웃 템플릿 적용 후 미세 조정도 가능해요)
+</p>
+
+<div id="controls-container">
+
+    <!-- 탭 -->
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="tab-bg">배경 · 로고</button>
+        <button class="tab-btn" data-tab="tab-text">텍스트</button>
+        <button class="tab-btn" data-tab="tab-layout">레이아웃 · 가이드</button>
+        <button class="tab-btn" data-tab="tab-project">프로젝트</button>
+        <button class="tab-btn" data-tab="tab-save">저장</button>
+    </div>
+
+    <!-- 배경/로고 탭 -->
+    <div id="tab-bg" class="control-group active">
+
+        <!-- 배경 -->
+        <div>
+            <div class="section-title">배경 이미지</div>
+            <label class="file-btn">
+                📸 배경 이미지 선택
+                <input type="file" id="image-upload" accept="image/*" style="display:none;">
+            </label>
+
+            <div class="divider"></div>
+
+            <div class="input-row">
+                <span class="input-label">배경 확대/축소</span>
+                <input type="range" id="bg-scale" min="0.5" max="2.0" step="0.05" value="1.0">
+            </div>
+            <div class="input-row">
+                <span class="input-label">밝기</span>
+                <input type="range" id="bg-brightness" min="0.3" max="1.7" step="0.05" value="1.0">
+            </div>
+            <div class="input-row">
+                <span class="input-label">대비</span>
+                <input type="range" id="bg-contrast" min="0.3" max="1.7" step="0.05" value="1.0">
+            </div>
+            <div class="input-row">
+                <span class="input-label">블러</span>
+                <input type="range" id="bg-blur" min="0" max="12" step="1" value="0">
+            </div>
+
+            <div class="input-row">
+                <span class="input-label">필터</span>
+                <div class="chip-row">
+                    <button class="chip" data-filter="none">기본</button>
+                    <button class="chip" data-filter="bw">흑백</button>
+                    <button class="chip" data-filter="warm">따뜻함</button>
+                    <button class="chip" data-filter="cool">차가움</button>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="toggle-row">
+                <span>색상 오버레이</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="overlay-enabled">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="input-row">
+                <span class="input-label">오버레이 색상</span>
+                <input type="color" id="overlay-color" value="#000000" style="max-width:120px;">
+            </div>
+            <div class="input-row">
+                <span class="input-label">오버레이 강도</span>
+                <input type="range" id="overlay-alpha" min="0" max="0.9" step="0.05" value="0.4">
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="section-sub">배경 위치 미세 조정</div>
+            <div class="chip-row">
+                <button class="chip" data-bg-move="0,-20">▲</button>
+                <button class="chip" data-bg-move="-20,0">◀︎</button>
+                <button class="chip" data-bg-move="20,0">▶︎</button>
+                <button class="chip" data-bg-move="0,20">▼</button>
+                <button class="chip" id="bg-reset">초기화</button>
+            </div>
+        </div>
+
+        <!-- 로고 -->
+        <div class="divider"></div>
+        <div>
+            <div class="section-title">로고 레이어</div>
+            <div class="section-sub">최대 3개 로고를 사용할 수 있어요.</div>
+
+            <div class="input-row">
+                <span class="input-label">현재 로고</span>
+                <select id="logo-index-select">
+                    <option value="0">로고 1</option>
+                    <option value="1">로고 2</option>
+                    <option value="2">로고 3</option>
+                </select>
+            </div>
+
+            <label class="file-btn">
+                🖼️ 선택한 로고 이미지 설정
+                <input type="file" id="logo-upload" accept="image/*" style="display:none;">
+            </label>
+
+            <div class="toggle-row">
+                <span>로고 사용</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="logo-enabled">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="input-row">
+                <span class="input-label">크기</span>
+                <input type="range" id="logo-scale" min="0.2" max="2.0" step="0.05" value="1.0">
+            </div>
+            <div class="input-row">
+                <span class="input-label">투명도</span>
+                <input type="range" id="logo-opacity" min="0.1" max="1" step="0.05" value="1.0">
+            </div>
+
+            <div class="section-sub">위치 프리셋</div>
+            <div class="chip-row">
+                <button class="chip" data-logo-pos="lt">좌상단</button>
+                <button class="chip" data-logo-pos="rt">우상단</button>
+                <button class="chip" data-logo-pos="lb">좌하단</button>
+                <button class="chip" data-logo-pos="rb">우하단</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 텍스트 탭 -->
+    <div id="tab-text" class="control-group">
+        <!-- 메인 텍스트 -->
+        <div>
+            <div class="section-title">메인 텍스트 (하단 큰 제목)</div>
+            <div class="section-sub">
+                색상코드: (r)빨강(r), (g)연두(g), (b)파랑(b), (y)노랑(y), (k)검정(k)
+            </div>
+            <div class="input-row">
+                <input type="text" id="main-text-input" placeholder="강렬한 메인 문구를 입력해보세요">
+            </div>
+
+            <div class="chip-row">
+                <button class="chip" id="idea-btn">아이디어 제안</button>
+                <button class="chip" data-style-preset="white-outline">흰 + 검 외곽</button>
+                <button class="chip" data-style-preset="yellow-black">노랑 + 검 그림자</button>
+                <button class="chip" data-style-preset="red-white">빨강 + 흰 외곽</button>
+            </div>
+
+            <div class="input-row">
+                <span class="input-label">크기</span>
+                <input type="range" id="main-text-size" min="80" max="260" step="5" value="180">
+            </div>
+            <div class="input-row">
+                <span class="input-label">세로 위치</span>
+                <input type="range" id="main-text-y" min="100" max="1030" step="5" value="1004">
+            </div>
+            <div class="input-row">
+                <span class="input-label">폰트</span>
+                <select id="main-text-font">
+                    <option value="SBAggroB">SBAggroB (한글 강조)</option>
+                    <option value="LINESeedKR-Bd">LINESeed Bold</option>
+                    <option value="RiaSans-ExtraBold">RiaSans ExtraBold</option>
+                    <option value="sans-serif">기본 Sans</option>
+                </select>
+            </div>
+
+            <div class="input-row">
+                <span class="input-label">정렬</span>
+                <select id="main-text-align">
+                    <option value="left">왼쪽</option>
+                    <option value="center">가운데</option>
+                    <option value="right">오른쪽</option>
+                </select>
+            </div>
+
+            <div class="toggle-row">
+                <span>자동 줄바꿈</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="main-wrap" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="input-row">
+                <span class="input-label">줄 간격</span>
+                <input type="range" id="main-line-height" min="0.9" max="1.5" step="0.05" value="1.1">
+            </div>
+
+            <div class="input-row">
+                <span class="input-label">자간</span>
+                <input type="range" id="main-letter-spacing" min="-2" max="8" step="0.5" value="0">
+            </div>
+
+            <div class="input-row">
+                <span class="input-label">외곽선 두께</span>
+                <input type="range" id="main-outline" min="0" max="0.12" step="0.01" value="0.04">
+            </div>
+
+            <div class="input-row">
+                <span class="input-label">그림자 강도</span>
+                <input type="range" id="main-shadow" min="0" max="40" step="1" value="18">
+            </div>
+
+            <div class="toggle-row">
+                <span>직접 색상 선택 사용 (태그 무시)</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="main-custom-color-enabled">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="input-row">
+                <span class="input-label">기본 색상</span>
+                <input type="color" id="main-custom-color" value="#ffffff" style="max-width:120px;">
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- 서브 텍스트 -->
+        <div>
+            <div class="section-title">서브 텍스트 (우측 상단 · 날짜/숫자)</div>
+            <div class="input-row">
+                <input type="text" id="sub-text-input" placeholder="날짜/에피소드 등" />
+            </div>
+            <div class="input-row">
+                <span class="input-label">크기</span>
+                <input type="range" id="sub-text-size" min="40" max="180" step="2" value="90">
+            </div>
+            <div class="input-row">
+                <span class="input-label">폰트</span>
+                <select id="sub-text-font">
+                    <option value="RiaSans-ExtraBold">RiaSans ExtraBold</option>
+                    <option value="SBAggroB">SBAggroB</option>
+                    <option value="LINESeedKR-Bd">LINESeed</option>
+                    <option value="sans-serif">기본 Sans</option>
+                </select>
+            </div>
+            <div class="input-row">
+                <span class="input-label">정렬</span>
+                <select id="sub-text-align">
+                    <option value="right">오른쪽</option>
+                    <option value="center">가운데</option>
+                    <option value="left">왼쪽</option>
+                </select>
+            </div>
+            <div class="input-row">
+                <span class="input-label">외곽선</span>
+                <input type="range" id="sub-outline" min="0" max="0.12" step="0.01" value="0.03">
+            </div>
+            <div class="input-row">
+                <span class="input-label">그림자</span>
+                <input type="range" id="sub-shadow" min="0" max="30" step="1" value="12">
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- 추가 텍스트 (중앙 등) -->
+        <div>
+            <div class="section-title">추가 텍스트 (중앙 부제/설명)</div>
+            <div class="toggle-row">
+                <span>추가 텍스트 사용</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="extra-enabled">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="input-row">
+                <input type="text" id="extra-text-input" placeholder="부제/짧은 설명 텍스트">
+            </div>
+            <div class="input-row">
+                <span class="input-label">크기</span>
+                <input type="range" id="extra-text-size" min="40" max="150" step="2" value="70">
+            </div>
+            <div class="input-row">
+                <span class="input-label">폰트</span>
+                <select id="extra-text-font">
+                    <option value="LINESeedKR-Bd">LINESeed</option>
+                    <option value="SBAggroB">SBAggroB</option>
+                    <option value="RiaSans-ExtraBold">RiaSans</option>
+                    <option value="sans-serif">기본 Sans</option>
+                </select>
+            </div>
+            <div class="input-row">
+                <span class="input-label">정렬</span>
+                <select id="extra-text-align">
+                    <option value="center">가운데</option>
+                    <option value="left">왼쪽</option>
+                    <option value="right">오른쪽</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- 카테고리 배지 / 리본 -->
+        <div>
+            <div class="section-title">카테고리 배지 & 리본</div>
+
+            <div class="toggle-row">
+                <span>좌상단 카테고리 배지</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="badge-enabled" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="input-row">
+                <span class="input-label">카테고리 선택</span>
+                <select id="badge-category">
+                    <option value="">선택 안 함</option>
+                    <option value="VLOG">VLOG</option>
+                    <option value="GAME">GAME</option>
+                    <option value="TUTORIAL">TUTORIAL</option>
+                    <option value="REVIEW">REVIEW</option>
+                    <option value="STUDY">STUDY</option>
+                    <option value="LIVE">LIVE</option>
+                </select>
+            </div>
+
+            <div class="input-row">
+                <span class="input-label">배지 텍스트</span>
+                <input type="text" id="badge-text-input" placeholder="예: VLOG, CLIP, EP.01">
+            </div>
+
+            <div class="input-row">
+                <span class="input-label">배경 색</span>
+                <input type="color" id="badge-bg-color" value="#ff4757" style="max-width:120px;">
+            </div>
+            <div class="input-row">
+                <span class="input-label">텍스트 색</span>
+                <input type="color" id="badge-text-color" value="#ffffff" style="max-width:120px;">
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="toggle-row">
+                <span>우상단 리본 (NEW/LIVE 등)</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="ribbon-enabled">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="input-row">
+                <span class="input-label">리본 텍스트</span>
+                <input type="text" id="ribbon-text-input" placeholder="예: NEW, LIVE, FULL">
+            </div>
+            <div class="input-row">
+                <span class="input-label">리본 색</span>
+                <input type="color" id="ribbon-color" value="#ffa502" style="max-width:120px;">
+            </div>
+        </div>
+    </div>
+
+    <!-- 레이아웃/가이드 탭 -->
+    <div id="tab-layout" class="control-group">
+        <div>
+            <div class="section-title">하단 그라데이션 & 도형 강조</div>
+
+            <div class="toggle-row">
+                <span>하단 그라데이션 박스</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="gradient-enabled" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="input-row">
+                <span class="input-label">높이</span>
+                <input type="range" id="gradient-height" min="100" max="500" step="10" value="260">
+            </div>
+            <div class="input-row">
+                <span class="input-label">강도</span>
+                <input type="range" id="gradient-alpha" min="0" max="0.95" step="0.05" value="0.75">
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="toggle-row">
+                <span>메인 텍스트 뒷배경 박스</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="main-bg-box-enabled">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="input-row">
+                <span class="input-label">박스 색상</span>
+                <input type="color" id="main-bg-box-color" value="#000000" style="max-width:120px;">
+            </div>
+            <div class="input-row">
+                <span class="input-label">박스 투명도</span>
+                <input type="range" id="main-bg-box-alpha" min="0" max="0.9" step="0.05" value="0.4">
+            </div>
+
+            <div class="toggle-row">
+                <span>메인 텍스트 밑줄</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="main-underline-enabled">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="toggle-row">
+                <span>중요 위치 화살표</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="arrow-enabled">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="section-sub">화살표는 화면 중앙 주위에 표시되며, 메인 피사체를 가리키는 느낌을 줄 수 있습니다.</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div>
+            <div class="section-title">가이드 & 스냅</div>
+
+            <div class="toggle-row">
+                <span>3x3 그리드 표시</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="grid-enabled">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="toggle-row">
+                <span>중앙/여백 가이드 표시</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="guides-enabled">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="toggle-row">
+                <span>얼굴/중요 영역 가이드</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="important-area-enabled">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="toggle-row">
+                <span>스냅(중앙/여백 맞추기)</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="snap-enabled" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div>
+            <div class="section-title">레이아웃 템플릿</div>
+            <div class="section-sub">템플릿을 선택하면 텍스트/로고 위치가 자동으로 배치됩니다. 이후 드래그로 미세 조정하세요.</div>
+
+            <div class="input-row">
+                <span class="input-label">템플릿</span>
+                <select id="layout-template-select">
+                    <option value="">선택 안 함</option>
+                    <option value="face-left">왼쪽 얼굴 + 오른쪽 텍스트</option>
+                    <option value="face-right">오른쪽 얼굴 + 왼쪽 텍스트</option>
+                    <option value="center-face">중앙 얼굴 + 상하 텍스트</option>
+                    <option value="no-face-text-only">텍스트 강조형</option>
+                </select>
+            </div>
+
+            <button class="action-btn secondary" id="apply-template-btn">템플릿 적용</button>
+
+            <div class="divider"></div>
+
+            <div class="section-title">정렬 보조</div>
+            <div class="section-sub">
+                캔버스에서 요소를 클릭하면 선택됩니다.  
+                방향키(←↑↓→)로 조금씩 이동할 수 있어요.
+            </div>
+            <div class="chip-row">
+                <button class="chip" id="select-main-text">메인 텍스트 선택</button>
+                <button class="chip" id="select-sub-text">서브 텍스트 선택</button>
+                <button class="chip" id="select-extra-text">추가 텍스트 선택</button>
+                <button class="chip" id="select-logo1">로고 1 선택</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 프로젝트 탭 -->
+    <div id="tab-project" class="control-group">
+        <div>
+            <div class="section-title">자동 저장 & 최근 작업</div>
+            <div class="section-sub">
+                변경 시 자동으로 브라우저에 저장됩니다(LocalStorage). 같은 브라우저에서 다시 접속하면 이어서 작업할 수 있어요.
+            </div>
+            <div class="project-info" id="autosave-status">자동 저장: 준비됨</div>
+
+            <div class="divider"></div>
+
+            <div class="section-title">최근 프로젝트</div>
+            <div class="section-sub">최근 저장된 썸네일 설정 3개까지 기억해둡니다.</div>
+            <div class="recent-projects" id="recent-projects"></div>
+            <div class="chip-row" style="margin-top:6px;">
+                <button class="chip" id="save-current-to-recent">현재 설정을 최근에 추가</button>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div>
+            <div class="section-title">프로젝트 리셋</div>
+            <button class="action-btn secondary" id="reset-all-btn">전체 초기화</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div>
+            <div class="section-title">프로젝트 내보내기/불러오기</div>
+            <div class="section-sub">
+                프로젝트를 JSON 파일로 저장해두었다가 나중에 불러올 수 있습니다.
+            </div>
+
+            <div class="chip-row">
+                <button class="chip" id="export-project-btn">JSON 내보내기</button>
+                <label class="chip">
+                    JSON 불러오기
+                    <input type="file" id="import-project-file" accept="application/json" style="display:none;">
+                </label>
+            </div>
+
+            <div class="section-sub">내보낸 JSON은 메모장 등으로 열어볼 수 있습니다.</div>
+        </div>
+    </div>
+
+    <!-- 저장 탭 -->
+    <div id="tab-save" class="control-group">
+        <div>
+            <div class="section-title">출력 설정</div>
+
+            <div class="radio-row">
+                <label>
+                    <input type="radio" name="export-res" value="1080" checked>
+                    1920×1080 (고해상도)
+                </label>
+                <label>
+                    <input type="radio" name="export-res" value="720">
+                    1280×720 (유튜브 권장)
+                </label>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="section-title">JPG 압축 품질</div>
+            <div class="section-sub">파일 크기가 큰 경우 0.6~0.8 사이를 추천합니다.</div>
+            <div class="input-row">
+                <span class="input-label">품질</span>
+                <input type="range" id="jpg-quality" min="0.4" max="1" step="0.05" value="0.8">
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div>
+            <button id="save-png-button" class="action-btn">PNG로 저장</button>
+            <button id="save-jpg-button" class="action-btn secondary" style="margin-top:4px;">JPG로 저장 (압축)</button>
+            <div id="file-size-warning" style="color:#ff453a; text-align:center; display:none; margin-top:10px; font-size:0.8rem;"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==========================
+    // 기본 상태 및 유틸
+    // ==========================
+    const canvas = document.getElementById('thumbnail');
+    const ctx = canvas.getContext('2d');
+    const previewCanvas = document.getElementById('preview');
+    const pctx = previewCanvas.getContext('2d');
+
+    const today = new Date();
+
+    // 텍스트 아이디어 (KR/EN)
+    const ideaPool = {
+        ko: [
+            '(y)이것도 모르면(y) (r)손해!(r)',
+            '(y)3분 만에 정리하는(y) (b)핵심 개념(b)',
+            '(r)절대(r) (k)놓치면 안 되는(k) 포인트',
+            '(y)진짜(y) (b)현실적인(b) 꿀팁 모음',
+            '(r)○○○(r)을 (y)완전히(y) 바꿔줄 방법'
+        ],
+        en: [
+            '(y)You MUST(y) (r)know this(r)',
+            '(y)3 mins(y) to (b)understand everything(b)',
+            '(r)Don’t miss(r) (k)this one(k)',
+            '(y)Real(y) (b)game changer(b)',
+            '(r)Stop doing(r) (y)this(y) right now'
+        ]
+    };
+
+    // 상태
+    const state = {
+        language: 'ko',
+
+        bg: {
+            image: null,
+            brightness: 1.0,
+            contrast: 1.0,
+            blur: 0,
+            scale: 1.0,
+            offsetX: 0,
+            offsetY: 0,
+            filter: 'none',
+            overlayEnabled: false,
+            overlayColor: '#000000',
+            overlayAlpha: 0.4
+        },
+
+        gradient: {
+            enabled: true,
+            height: 260,
+            alpha: 0.75
+        },
+
+        mainText: {
+            enabled: true,
+            text: '',
+            x: 60,
+            y: 1004,
+            size: 180,
+            font: 'SBAggroB',
+            align: 'left',
+            wrap: true,
+            lineHeight: 1.1,
+            letterSpacing: 0,
+            outlineScale: 0.04,
+            shadowBlur: 18,
+            customColorEnabled: false,
+            customColor: '#ffffff'
+        },
+
+        subText: {
+            enabled: true,
+            text: '',
+            x: canvas.width - 60,
+            y: 120,
+            size: 90,
+            font: 'RiaSans-ExtraBold',
+            align: 'right',
+            outlineScale: 0.03,
+            shadowBlur: 12
+        },
+
+        extraText: {
+            enabled: false,
+            text: '',
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            size: 70,
+            font: 'LINESeedKR-Bd',
+            align: 'center'
+        },
+
+        badge: {
+            enabled: true,
+            text: '',
+            category: '',
+            x: 60,
+            y: 70,
+            bgColor: '#ff4757',
+            textColor: '#ffffff'
+        },
+
+        ribbon: {
+            enabled: false,
+            text: '',
+            color: '#ffa502'
+        },
+
+        mainBgBox: {
+            enabled: false,
+            color: '#000000',
+            alpha: 0.4
+        },
+
+        underline: {
+            mainEnabled: false
+        },
+
+        arrow: {
+            enabled: false
+        },
+
+        guides: {
+            grid: false,
+            guides: false,
+            importantArea: false,
+            snap: true
+        },
+
+        logos: [
+            { image: null, x: 40, y: 40, baseWidth: 0, baseHeight: 0, scale: 1.0, opacity: 1.0, enabled: false },
+            { image: null, x: 40, y: 40, baseWidth: 0, baseHeight: 0, scale: 1.0, opacity: 1.0, enabled: false },
+            { image: null, x: 40, y: 40, baseWidth: 0, baseHeight: 0, scale: 1.0, opacity: 1.0, enabled: false }
+        ],
+
+        activeElement: null, // {type:'mainText'|'subText'|'extraText'|'logo', index?}
+        dragging: null,
+        dragOffset: { x: 0, y: 0 },
+
+        export: {
+            resolution: 1080,
+            jpgQuality: 0.8
+        },
+
+        history: {
+            stack: [],
+            index: -1
+        }
+    };
+
+    // 초기 서브 텍스트에 오늘 날짜
+    state.subText.text = `${today.getFullYear().toString().slice(2)}.${(today.getMonth() + 1).toString().padStart(2, '0')}.${today.getDate().toString().padStart(2, '0')}`;
+
+    // ==========================
+    // 히스토리 (Undo/Redo)
+    // ==========================
+    function getConfigSnapshot() {
+        // 이미지 객체 제외, 좌표/텍스트/옵션만 저장
+        return {
+            language: state.language,
+            bg: {
+                brightness: state.bg.brightness,
+                contrast: state.bg.contrast,
+                blur: state.bg.blur,
+                scale: state.bg.scale,
+                offsetX: state.bg.offsetX,
+                offsetY: state.bg.offsetY,
+                filter: state.bg.filter,
+                overlayEnabled: state.bg.overlayEnabled,
+                overlayColor: state.bg.overlayColor,
+                overlayAlpha: state.bg.overlayAlpha
+            },
+            gradient: { ...state.gradient },
+            mainText: { ...state.mainText },
+            subText: { ...state.subText },
+            extraText: { ...state.extraText },
+            badge: { ...state.badge },
+            ribbon: { ...state.ribbon },
+            mainBgBox: { ...state.mainBgBox },
+            underline: { ...state.underline },
+            arrow: { ...state.arrow },
+            guides: { ...state.guides },
+            logos: state.logos.map(l => ({
+                x: l.x,
+                y: l.y,
+                scale: l.scale,
+                opacity: l.opacity,
+                enabled: l.enabled
+            })),
+            export: { ...state.export }
+        };
+    }
+
+    function applyConfigSnapshot(cfg) {
+        if (!cfg) return;
+        state.language = cfg.language ?? state.language;
+        Object.assign(state.bg, cfg.bg || {});
+        Object.assign(state.gradient, cfg.gradient || {});
+        Object.assign(state.mainText, cfg.mainText || {});
+        Object.assign(state.subText, cfg.subText || {});
+        Object.assign(state.extraText, cfg.extraText || {});
+        Object.assign(state.badge, cfg.badge || {});
+        Object.assign(state.ribbon, cfg.ribbon || {});
+        Object.assign(state.mainBgBox, cfg.mainBgBox || {});
+        Object.assign(state.underline, cfg.underline || {});
+        Object.assign(state.arrow, cfg.arrow || {});
+        Object.assign(state.guides, cfg.guides || {});
+        if (cfg.logos) {
+            cfg.logos.forEach((lcfg, i) => {
+                if (!state.logos[i]) return;
+                state.logos[i].x = lcfg.x;
+                state.logos[i].y = lcfg.y;
+                state.logos[i].scale = lcfg.scale;
+                state.logos[i].opacity = lcfg.opacity;
+                state.logos[i].enabled = lcfg.enabled;
+            });
+        }
+        Object.assign(state.export, cfg.export || {});
+        syncUIFromState();
+        drawAll();
+    }
+
+    function pushHistory() {
+        const snap = getConfigSnapshot();
+        const h = state.history;
+        h.stack = h.stack.slice(0, h.index + 1);
+        h.stack.push(snap);
+        h.index = h.stack.length - 1;
+        updateAutosaveStatus('변경 내용 저장됨');
+        saveToLocalStorage();
+    }
+
+    function undo() {
+        const h = state.history;
+        if (h.index <= 0) return;
+        h.index--;
+        applyConfigSnapshot(h.stack[h.index

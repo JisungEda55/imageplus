@@ -2,340 +2,415 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>유튜브 썸네일 메이커 Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@700;900&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>유튜브 썸네일 메이커 V2 (Mobile)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@500;900&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
-            --primary-color: #6200ea;
-            --bg-color: #f3f4f6;
-            --panel-width: 340px;
+            --primary: #FF0000;
+            --bg: #f0f2f5;
+            --canvas-w: 1280px;
+            --canvas-h: 720px;
         }
 
-        * { box-sizing: border-box; }
-
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background-color: var(--bg-color);
-            margin: 0;
-            display: flex;
-            height: 100vh;
-            color: #333;
-        }
-
-        /* 왼쪽 컨트롤 패널 */
-        .controls {
-            width: var(--panel-width);
-            background: white;
-            padding: 20px;
-            overflow-y: auto;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-            z-index: 10;
-        }
-
-        .control-group { margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
-        .control-group:last-child { border-bottom: none; }
+        * { box-sizing: border-box; touch-action: manipulation; }
         
-        h2 { font-size: 1.2rem; margin-top: 0; color: var(--primary-color); }
-        h3 { font-size: 0.9rem; color: #666; margin-bottom: 8px; }
-
-        label { display: block; margin-bottom: 5px; font-size: 0.85rem; font-weight: bold; }
-        input[type="text"], input[type="file"], select {
-            width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 10px;
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--bg);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* 전체 스크롤 방지 */
         }
-        input[type="color"] { width: 100%; height: 40px; padding: 0; border: none; cursor: pointer; }
-        input[type="range"] { width: 100%; }
 
-        button.btn-download {
-            background-color: #ff0000; /* 유튜브 레드 */
-            color: white;
-            border: none;
-            width: 100%;
-            padding: 15px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.2s;
-            margin-top: 10px;
+        /* 레이아웃 구조 */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
         }
-        button.btn-download:hover { background-color: #cc0000; }
 
-        /* 오른쪽 미리보기 영역 */
-        .preview-area {
-            flex: 1;
+        /* 1. 미리보기 영역 (상단) */
+        .preview-zone {
+            flex: 0 0 auto;
+            background-color: #222;
+            padding: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color: #333;
-            padding: 20px;
             overflow: hidden;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
 
-        /* 썸네일 캔버스 (16:9 비율 고정) */
-        #thumbnail-canvas {
-            width: 1280px;
-            height: 720px;
+        /* 2. 컨트롤 영역 (하단, 스크롤 가능) */
+        .control-zone {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: white;
+            padding-bottom: 50px; /* 하단 여백 */
+        }
+
+        /* 썸네일 작업 공간 (절대 크기 1280x720) */
+        #workspace {
+            width: var(--canvas-w);
+            height: var(--canvas-h);
             background-color: #000;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
-            /* 화면에 맞게 축소해서 보여주기 */
-            transform-origin: center center;
-            user-select: none;
+            transform-origin: top center; /* 축소 시 기준점 */
+            flex-shrink: 0;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
 
-        #bg-image {
-            width: 100%;
-            height: 100%;
+        #bg-layer {
+            width: 100%; height: 100%;
             object-fit: cover;
             position: absolute;
             top: 0; left: 0;
-            opacity: 1;
-        }
-
-        /* 텍스트 요소 공통 스타일 */
-        .draggable-text {
-            position: absolute;
-            font-family: 'Black Han Sans', sans-serif;
-            line-height: 1.2;
-            cursor: move;
-            white-space: pre-wrap;
-            text-align: center;
-            /* 강력한 외곽선 효과 (CSS Shadow Trick) */
-            text-shadow: 
-                3px 3px 0 #000, -1px -1px 0 #000, 
-                1px -1px 0 #000, -1px 1px 0 #000, 
-                1px 1px 0 #000;
         }
         
-        .draggable-text:hover {
-            outline: 2px dashed rgba(255, 255, 255, 0.5);
-        }
-
-        /* 기본 텍스트 프리셋 */
-        #text-main {
-            top: 20%; left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 100px;
-            color: #ffff00; /* 노란색 강조 */
-            z-index: 2;
-        }
-
-        #text-sub {
-            top: 75%; left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 60px;
-            color: #ffffff;
-            background: rgba(204, 0, 0, 0.9); /* 빨간 배경 박스 */
-            padding: 10px 30px;
-            border-radius: 10px;
-            box-shadow: 5px 5px 0px #000;
-            z-index: 2;
-        }
-
-        /* 오버레이 (배경 어둡게) */
-        #overlay {
+        #overlay-layer {
+            width: 100%; height: 100%;
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
             background: black;
             opacity: 0.2;
             pointer-events: none;
-            z-index: 1;
         }
 
-        .guide-text {
-            color: #888;
-            font-size: 0.8rem;
-            margin-top: 5px;
+        /* 텍스트 스타일 */
+        .move-text {
+            position: absolute;
+            font-family: 'Black Han Sans', sans-serif;
+            white-space: pre-wrap;
             text-align: center;
+            cursor: move;
+            line-height: 1.1;
+            user-select: none;
+            /* 모바일 터치 시 하이라이트 방지 */
+            -webkit-tap-highlight-color: transparent; 
+            /* 텍스트 외곽선 (가독성) */
+            text-shadow: 4px 4px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
+        }
+
+        .move-text.active {
+            outline: 4px dashed #fff;
+        }
+
+        /* 컨트롤 UI 스타일 */
+        h2 { margin: 0 0 15px 0; font-size: 1.2rem; color: #333; }
+        
+        .input-group {
+            margin-bottom: 20px;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #eee;
+        }
+        
+        .label-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: bold; font-size: 0.9rem; color: #555; }
+        
+        input[type="text"] {
+            width: 100%; padding: 12px; font-size: 1rem; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 10px;
+        }
+        
+        .tool-row { display: flex; gap: 10px; }
+        .tool-item { flex: 1; display: flex; flex-direction: column; }
+        .tool-item label { font-size: 0.8rem; margin-bottom: 4px; color: #888; }
+        input[type="color"] { width: 100%; height: 40px; border: none; padding: 0; cursor: pointer; border-radius: 4px; }
+        input[type="number"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        input[type="range"] { width: 100%; }
+
+        /* 파일 업로드 버튼 커스텀 */
+        .file-input-wrapper {
+            position: relative;
+            margin-bottom: 15px;
+        }
+        .file-input-wrapper input {
+            position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer;
+        }
+        .custom-file-btn {
+            display: block; width: 100%; padding: 12px;
+            background: #333; color: white; text-align: center;
+            border-radius: 8px; font-weight: bold;
+        }
+
+        .btn-save {
+            width: 100%; padding: 16px;
+            background-color: var(--primary);
+            color: white; border: none; border-radius: 8px;
+            font-size: 1.1rem; font-weight: 900;
+            box-shadow: 0 4px 6px rgba(255,0,0,0.3);
+            cursor: pointer;
+        }
+        .btn-save:active { transform: scale(0.98); }
+
+        /* PC 화면 대응 (가로 배치) */
+        @media (min-width: 1024px) {
+            .app-container { flex-direction: row; }
+            .preview-zone { flex: 1; height: 100vh; order: 2; }
+            .control-zone { width: 400px; height: 100vh; order: 1; border-right: 1px solid #ddd; }
         }
     </style>
 </head>
 <body>
 
-    <div class="controls">
-        <h2>🎬 썸네일 메이커</h2>
+<div class="app-container">
+    <div class="preview-zone" id="preview-container">
+        <div id="workspace">
+            <img id="bg-layer" src="" alt="" style="display:none;">
+            <div id="overlay-layer"></div>
+            
+            <div id="t1" class="move-text" style="top:20%; left:50%; transform:translate(-50%, -50%); font-size:110px; color:#FFE400; z-index:2;">
+                어그로 제목<br>여기 입력
+            </div>
+            
+            <div id="t2" class="move-text" style="top:75%; left:50%; transform:translate(-50%, -50%); font-size:60px; color:#fff; background:rgba(200,0,0,1); padding:10px 40px; border-radius:15px; z-index:2;">
+                핵심 내용 요약
+            </div>
+        </div>
+    </div>
+
+    <div class="control-zone">
+        <h2>🎨 썸네일 편집기</h2>
         
-        <div class="control-group">
-            <h3>1. 배경 이미지</h3>
-            <input type="file" id="img-upload" accept="image/*">
-            <label>배경 어둡기 (글자 강조)</label>
-            <input type="range" id="overlay-range" min="0" max="0.8" step="0.1" value="0.2">
+        <div class="input-group">
+            <div class="label-row"><span>1. 사진 업로드</span></div>
+            <div class="file-input-wrapper">
+                <button class="custom-file-btn">📷 갤러리에서 사진 선택</button>
+                <input type="file" id="inp-img" accept="image/*">
+            </div>
+            <div class="label-row"><span>배경 어둡기 (글자 잘보이게)</span></div>
+            <input type="range" id="inp-dim" min="0" max="0.8" step="0.1" value="0.2">
         </div>
 
-        <div class="control-group">
-            <h3>2. 메인 타이틀 (큰 글씨)</h3>
-            <input type="text" id="input-main" value="충격! 이것만 알면 끝">
-            <div style="display:flex; gap:5px;">
-                <div style="flex:1;">
+        <div class="input-group">
+            <div class="label-row"><span>2. 큰 제목 (노란색)</span></div>
+            <input type="text" id="inp-t1" value="어그로 제목&#10;여기 입력"> <div class="tool-row">
+                <div class="tool-item">
                     <label>글자색</label>
-                    <input type="color" id="color-main" value="#ffff00">
+                    <input type="color" id="col-t1" value="#FFE400">
                 </div>
-                <div style="flex:1;">
+                <div class="tool-item">
                     <label>크기</label>
-                    <input type="number" id="size-main" value="100">
+                    <input type="number" id="siz-t1" value="110">
                 </div>
             </div>
         </div>
 
-        <div class="control-group">
-            <h3>3. 서브 타이틀 (박스 글씨)</h3>
-            <input type="text" id="input-sub" value="지금 바로 확인하세요">
-            <div style="display:flex; gap:5px;">
-                <div style="flex:1;">
+        <div class="input-group">
+            <div class="label-row"><span>3. 강조 박스 (빨간색)</span></div>
+            <input type="text" id="inp-t2" value="핵심 내용 요약">
+            <div class="tool-row">
+                <div class="tool-item">
                     <label>글자색</label>
-                    <input type="color" id="color-sub" value="#ffffff">
+                    <input type="color" id="col-t2" value="#ffffff">
                 </div>
-                <div style="flex:1;">
+                <div class="tool-item">
                     <label>배경색</label>
-                    <input type="color" id="bg-color-sub" value="#cc0000">
+                    <input type="color" id="bg-t2" value="#c80000">
                 </div>
             </div>
         </div>
 
-        <button class="btn-download" onclick="downloadThumbnail()">썸네일 다운로드 (JPG)</button>
-        <p class="guide-text">*오른쪽 화면의 글자를 드래그해서 위치를 옮길 수 있습니다.</p>
+        <button class="btn-save" onclick="saveImage()">이미지 저장하기 (다운로드)</button>
+        <p style="text-align:center; color:#888; font-size:0.8rem; margin-top:10px;">
+            *화면의 글자를 손가락으로 드래그해보세요!
+        </p>
     </div>
+</div>
 
-    <div class="preview-area">
-        <div id="thumbnail-canvas">
-            <img id="bg-image" src="" alt="" style="display:none;">
-            <div id="overlay"></div>
-            
-            <div id="text-main" class="draggable-text">충격! 이것만 알면 끝</div>
-            <div id="text-sub" class="draggable-text">지금 바로 확인하세요</div>
-        </div>
-    </div>
+<script>
+    // === 1. 요소 초기화 ===
+    const workspace = document.getElementById('workspace');
+    const container = document.getElementById('preview-container');
+    const bgImg = document.getElementById('bg-layer');
+    
+    // === 2. 화면 크기에 맞춰 캔버스 축소 (반응형 핵심) ===
+    let currentScale = 1;
 
-    <script>
-        // 요소 선택
-        const canvas = document.getElementById('thumbnail-canvas');
-        const bgImage = document.getElementById('bg-image');
-        const imgUpload = document.getElementById('img-upload');
-        const overlay = document.getElementById('overlay');
-        const overlayRange = document.getElementById('overlay-range');
+    function fitWorkspace() {
+        const padding = 20; // 여백
+        const availableW = container.clientWidth - padding;
+        const availableH = container.clientHeight - padding;
+        
+        // 가로/세로 비율 중 더 많이 줄여야 하는 쪽 기준
+        const scaleW = availableW / 1280;
+        const scaleH = availableH / 720;
+        currentScale = Math.min(scaleW, scaleH); // 더 작은 비율 선택
 
-        // 1. 이미지 업로드 처리
-        imgUpload.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    bgImage.src = event.target.result;
-                    bgImage.style.display = 'block';
-                }
-                reader.readAsDataURL(file);
+        // 너무 커지지 않게 제한 (PC에서)
+        if (currentScale > 1) currentScale = 1; // 굳이 확대하진 않음
+
+        workspace.style.transform = `scale(${currentScale})`;
+        
+        // CSS transform은 공간을 차지하므로, 마진이나 높이 조정이 필요할 수 있음
+        // 여기서는 Flex 중앙 정렬로 처리됨.
+    }
+
+    window.addEventListener('resize', fitWorkspace);
+    // 이미지 로드 시 레이아웃 깨짐 방지용 딜레이 실행
+    setTimeout(fitWorkspace, 100);
+
+    // === 3. 이미지 업로드 처리 ===
+    document.getElementById('inp-img').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                bgImg.src = evt.target.result;
+                bgImg.style.display = 'block';
             }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    document.getElementById('inp-dim').addEventListener('input', (e) => {
+        document.getElementById('overlay-layer').style.opacity = e.target.value;
+    });
+
+    // === 4. 텍스트 실시간 수정 연결 ===
+    function bindInput(inputId, textId, type) {
+        const inp = document.getElementById(inputId);
+        const txt = document.getElementById(textId);
+        
+        inp.addEventListener('input', () => {
+            if (type === 'text') txt.innerText = inp.value;
+            if (type === 'color') txt.style.color = inp.value;
+            if (type === 'bg') txt.style.backgroundColor = inp.value;
+            if (type === 'size') txt.style.fontSize = inp.value + 'px';
         });
+    }
 
-        // 2. 오버레이 조절
-        overlayRange.addEventListener('input', (e) => {
-            overlay.style.opacity = e.target.value;
-        });
+    bindInput('inp-t1', 't1', 'text');
+    bindInput('col-t1', 't1', 'color');
+    bindInput('siz-t1', 't1', 'size');
 
-        // 3. 텍스트 실시간 수정 함수
-        function bindTextControl(inputId, textId, colorId, sizeId, bgId) {
-            const input = document.getElementById(inputId);
-            const textElement = document.getElementById(textId);
-            const colorInput = document.getElementById(colorId);
-            
-            // 텍스트 내용 변경
-            input.addEventListener('input', () => textElement.innerText = input.value);
-            
-            // 색상 변경
-            if(colorInput) {
-                colorInput.addEventListener('input', () => textElement.style.color = colorInput.value);
-            }
+    bindInput('inp-t2', 't2', 'text');
+    bindInput('col-t2', 't2', 'color');
+    bindInput('bg-t2', 't2', 'bg');
 
-            // 크기 변경 (메인 타이틀용)
-            if(sizeId) {
-                const sizeInput = document.getElementById(sizeId);
-                sizeInput.addEventListener('input', () => textElement.style.fontSize = sizeInput.value + 'px');
-            }
 
-            // 배경색 변경 (서브 타이틀용)
-            if(bgId) {
-                const bgInput = document.getElementById(bgId);
-                bgInput.addEventListener('input', () => textElement.style.backgroundColor = bgInput.value);
-            }
+    // === 5. 드래그 로직 (모바일 터치 + PC 마우스 통합) ===
+    let activeItem = null;
+    let startX = 0, startY = 0;
+    let initialLeft = 0, initialTop = 0;
+
+    const draggables = document.querySelectorAll('.move-text');
+
+    draggables.forEach(item => {
+        // PC 마우스
+        item.addEventListener('mousedown', startDrag);
+        // 모바일 터치
+        item.addEventListener('touchstart', startDrag, { passive: false });
+    });
+
+    function startDrag(e) {
+        // 기본 터치 동작(스크롤 등) 방지
+        if(e.type === 'touchstart') e.preventDefault();
+        
+        activeItem = this;
+        activeItem.classList.add('active'); // 테두리 표시
+
+        // 이벤트 좌표 통일
+        const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+        const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+
+        startX = clientX;
+        startY = clientY;
+
+        // 현재 style.left/top 값 파싱 (없으면 중앙 배치된 computed style 가져오기)
+        const rect = activeItem.getBoundingClientRect();
+        const parentRect = workspace.getBoundingClientRect();
+
+        // transform:translate(-50%, -50%) 때문에 오프셋 계산이 복잡함.
+        // 단순히 현재 위치에서 델타값만 더해주는 방식으로 구현하는 게 안전함.
+        
+        // 현재 요소의 CSS left/top 값 (px 단위가 아닐 수도 있음)
+        // 드래그 시작 시점의 절대 좌표를 기억하지 않고, 
+        // 움직인 거리만큼을 기존 left/top에 더해주는 방식 사용.
+        
+        // 초기값 세팅 (최초 1회만 % -> px 변환 필요할 수 있음)
+        // 간단하게: 현재 offsetLeft, offsetTop은 transform 영향 받음.
+        // 가장 확실한 방법: getBoundingClientRect로 현재 캔버스 내 좌표 역산.
+        
+        // 하지만 더 쉬운 방법:
+        // 그냥 현재 마우스가 움직인 거리(delta)를 scale로 나눠서 현재 style.left/top에 더함.
+        
+        // style.left가 %일 경우 px로 강제 변환
+        const computed = window.getComputedStyle(activeItem);
+        if (activeItem.style.left.includes('%')) {
+            activeItem.style.left = computed.left;
+            activeItem.style.top = computed.top;
+            activeItem.style.transform = 'translate(-50%, -50%)'; // 중심점 유지
         }
 
-        bindTextControl('input-main', 'text-main', 'color-main', 'size-main', null);
-        bindTextControl('input-sub', 'text-sub', 'color-sub', null, 'bg-color-sub');
+        document.addEventListener('mousemove', onDrag);
+        document.addEventListener('mouseup', endDrag);
+        document.addEventListener('touchmove', onDrag, { passive: false });
+        document.addEventListener('touchend', endDrag);
+    }
 
-        // 4. 드래그 앤 드롭 기능 (마우스)
-        let isDragging = false;
-        let currentElement = null;
-        let offsetX, offsetY;
+    function onDrag(e) {
+        if (!activeItem) return;
+        if(e.type === 'touchmove') e.preventDefault(); // 스크롤 방지
 
-        document.querySelectorAll('.draggable-text').forEach(el => {
-            el.addEventListener('mousedown', (e) => {
-                isDragging = true;
-                currentElement = el;
-                // 현재 마우스 위치와 요소 위치의 차이 계산
-                offsetX = e.clientX - el.getBoundingClientRect().left;
-                offsetY = e.clientY - el.getBoundingClientRect().top;
-                el.style.cursor = 'grabbing';
-            });
-        });
+        const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+        const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
 
-        document.addEventListener('mousemove', (e) => {
-            if (!isDragging || !currentElement) return;
-            
-            // 캔버스 기준 좌표 계산 (transform scale 고려해야 하지만, 여기서는 단순화)
-            // 캔버스가 화면 중앙에 있으므로 clientX 처리가 까다로움.
-            // 대신 offsetParent 기준으로 % 또는 픽셀 이동 처리
-            
-            // 쉬운 방법: 캔버스 내부 좌표계로 변환
-            const canvasRect = canvas.getBoundingClientRect();
-            const scaleX = 1280 / canvasRect.width;
-            const scaleY = 720 / canvasRect.height;
+        const deltaX = (clientX - startX) / currentScale; // 축소된 비율만큼 보정
+        const deltaY = (clientY - startY) / currentScale;
 
-            let newX = (e.clientX - canvasRect.left - offsetX) * scaleX;
-            let newY = (e.clientY - canvasRect.top - offsetY) * scaleY;
+        // 현재 위치 값 가져오기 (px)
+        let currLeft = parseFloat(activeItem.style.left);
+        let currTop = parseFloat(activeItem.style.top);
 
-            // transform translate 제거하고 left/top으로만 제어하기 위해 초기화
-            currentElement.style.transform = 'none';
-            currentElement.style.left = newX + 'px';
-            currentElement.style.top = newY + 'px';
-        });
+        activeItem.style.left = (currLeft + deltaX) + 'px';
+        activeItem.style.top = (currTop + deltaY) + 'px';
 
-        document.addEventListener('mouseup', () => {
-            isDragging = false;
-            if (currentElement) currentElement.style.cursor = 'move';
-            currentElement = null;
-        });
+        // 시작점 업데이트
+        startX = clientX;
+        startY = clientY;
+    }
 
-        // 5. 화면 크기에 맞춰 미리보기 축소 (반응형)
-        function resizePreview() {
-            const container = document.querySelector('.preview-area');
-            const containerWidth = container.clientWidth - 40;
-            const containerHeight = container.clientHeight - 40;
-            const scale = Math.min(containerWidth / 1280, containerHeight / 720);
-            
-            canvas.style.transform = `scale(${scale})`;
+    function endDrag() {
+        if (activeItem) {
+            activeItem.classList.remove('active');
+            activeItem = null;
         }
-        window.addEventListener('resize', resizePreview);
-        resizePreview(); // 초기 실행
+        document.removeEventListener('mousemove', onDrag);
+        document.removeEventListener('mouseup', endDrag);
+        document.removeEventListener('touchmove', onDrag);
+        document.removeEventListener('touchend', endDrag);
+    }
 
-        // 6. 다운로드 기능
-        function downloadThumbnail() {
-            // html2canvas를 사용하여 캡처
-            html2canvas(canvas, {
-                width: 1280,
-                height: 720,
-                scale: 1, // 원본 해상도 유지
-                backgroundColor: null,
-                useCORS: true // 로컬 이미지 이슈 방지 노력
-            }).then(capturedCanvas => {
-                const link = document.createElement('a');
-                link.download = 'youtube_thumbnail.jpg';
-                link.href = capturedCanvas.toDataURL('image/jpeg', 0.9);
-                link.click();
-            });
-        }
-    </script>
+    // === 6. 저장 기능 ===
+    function saveImage() {
+        // 저장 전 선택 테두리 제거
+        if(activeItem) activeItem.classList.remove('active');
+        
+        // 캔버스 캡처
+        html2canvas(workspace, {
+            scale: 1, // 원본 크기(1280x720)로 캡처
+            backgroundColor: null,
+            useCORS: true
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'thumbnail.jpg';
+            link.href = canvas.toDataURL('image/jpeg', 0.9);
+            link.click();
+        });
+    }
+
+    // 초기 실행
+    fitWorkspace();
+</script>
+
 </body>
 </html>

@@ -2,20 +2,24 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Image PLUS - Thumbnail Studio</title>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Image PLUS - Mobile & Pro</title>
     <link rel="icon" type="image/png" href="https://i.ibb.co/YTq2tCG/iconx.webp">
-    <!-- 폰트 -->
+
+    <!-- 폰트 정의 -->
     <style>
         @font-face {
             font-family: 'LINESeedKR-Bd';
             src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_11-01@1.0/LINESeedKR-Bd.woff2') format('woff2');
             font-weight: 700;
         }
+
         @font-face {
             font-family: 'RiaSans-ExtraBold';
             src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2410-1@1.0/RiaSans-ExtraBold.woff2') format('woff2');
         }
+
         @font-face {
             font-family: 'SBAggroB';
             src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroB.woff') format('woff');
@@ -38,10 +42,12 @@
             --input-bg: #e5e5e7;
         }
 
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+        }
 
         body {
-            font-family: 'LINESeedKR-Bd', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'LINESeedKR-Bd', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
@@ -55,15 +61,13 @@
 
         header {
             width: 100%;
-            padding: 10px 16px;
+            padding: 10px 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             background-color: var(--panel-bg);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
             z-index: 100;
-            position: sticky;
-            top: 0;
         }
 
         h1 {
@@ -71,11 +75,11 @@
             font-size: 1.1rem;
             display: flex;
             align-items: baseline;
-            gap: 6px;
+            gap: 4px;
         }
 
         h1 span {
-            font-size: 0.75rem;
+            font-size: 0.75em;
             opacity: 0.7;
         }
 
@@ -89,170 +93,179 @@
             background: none;
             border: none;
             cursor: pointer;
-            padding: 5px;
-            border-radius: 999px;
+            padding: 4px;
+            border-radius: 50%;
         }
 
         .icon-btn:hover {
-            background-color: rgba(255,255,255,0.05);
+            background-color: rgba(255, 255, 255, 0.06);
         }
 
-        #redirect-button {
-            background: var(--accent-color);
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
+        .pill-btn {
+            border-radius: 999px;
+            padding: 4px 12px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.75rem;
         }
 
-        #redirect-button img {
-            filter: brightness(0);
+        .pill-btn.accent {
+            background-color: var(--accent-color);
+            color: #000;
         }
 
-        /* 캔버스 영역 */
-        #canvas-section {
-            width: 100%;
-            max-width: 1100px;
-            padding: 16px;
+        .pill-btn.secondary {
+            background-color: var(--input-bg);
+            color: var(--text-color);
         }
 
         #canvas-wrapper {
             position: relative;
             width: 100%;
-            margin: 10px auto;
+            max-width: 960px;
+            margin: 16px auto 8px auto;
+            padding: 0 10px;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
         }
 
-        canvas#main-canvas {
+        #thumbnail {
             width: 100% !important;
             height: auto !important;
             max-width: 100%;
             border-radius: var(--border-radius);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
             touch-action: none;
             cursor: grab;
             background-color: #333;
-            transform-origin: center center;
         }
 
-        canvas#main-canvas:active {
+        #thumbnail:active {
             cursor: grabbing;
         }
 
-        #preview-wrapper {
-            margin-top: 10px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 0.8rem;
-            opacity: 0.9;
-        }
-
-        #preview-canvas {
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            background-color: #222;
-        }
-
-        #zoom-row {
-            margin-top: 8px;
+        .preview-wrapper {
             display: flex;
             align-items: center;
             gap: 8px;
-            font-size: 0.8rem;
+            width: 100%;
+            max-width: 960px;
+            padding: 0 10px;
+            justify-content: flex-start;
         }
 
-        /* 컨트롤 패널 */
+        .preview-card {
+            background-color: var(--panel-bg);
+            border-radius: 12px;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        #preview {
+            width: 160px;
+            height: 90px;
+            border-radius: 8px;
+            background-color: #111;
+        }
+
+        .preview-label {
+            font-size: 0.75rem;
+            color: #aaa;
+        }
+
+        .guide-text {
+            font-size: 0.8rem;
+            color: #888;
+            text-align: center;
+            margin: 4px 12px 12px 12px;
+        }
+
         #controls-container {
             width: 100%;
-            max-width: 1100px;
-            padding: 0 16px 32px 16px;
+            max-width: 960px;
+            padding: 0 10px 40px 10px;
         }
 
         .tabs {
             display: flex;
-            flex-wrap: wrap;
             gap: 6px;
             margin-bottom: 10px;
+            background: var(--input-bg);
+            padding: 5px;
+            border-radius: 12px;
+            overflow-x: auto;
         }
 
         .tab-btn {
             padding: 8px 12px;
             border: none;
-            background: var(--panel-bg);
+            background: transparent;
             color: var(--text-color);
             border-radius: 999px;
             cursor: pointer;
-            font-weight: 600;
-            font-size: 0.85rem;
-            flex: 0 0 auto;
-            transition: 0.15s;
-            opacity: 0.7;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .tab-btn.active {
-            background-color: var(--accent-color);
-            color: #000;
-            opacity: 1;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+            background-color: var(--bg-color);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
         }
 
         .control-group {
             display: none;
             background-color: var(--panel-bg);
-            border-radius: var(--border-radius);
             padding: 16px;
-            margin-bottom: 10px;
+            border-radius: var(--border-radius);
+            margin-bottom: 12px;
+            display: none;
+            flex-direction: column;
+            gap: 12px;
         }
 
         .control-group.active {
-            display: block;
+            display: flex;
         }
 
         .section-title {
-            font-size: 0.88rem;
+            font-size: 0.9rem;
             font-weight: 700;
-            margin: 4px 0 8px 0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            margin-bottom: 4px;
         }
 
-        .section-title small {
-            font-weight: 400;
-            font-size: 0.7rem;
-            opacity: 0.7;
-        }
-
-        .section {
-            border-radius: 12px;
-            background-color: rgba(0,0,0,0.08);
-            padding: 10px;
-            margin-bottom: 10px;
+        .section-sub {
+            font-size: 0.75rem;
+            color: #888;
+            margin-bottom: 4px;
         }
 
         .input-row {
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
+            justify-content: space-between;
+            gap: 10px;
         }
 
         .input-label {
-            font-size: 0.78rem;
-            min-width: 80px;
+            font-size: 0.8rem;
             color: #aaa;
+            flex-shrink: 0;
         }
 
-        input[type="text"], select {
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
             width: 100%;
-            padding: 8px 10px;
-            border-radius: 8px;
+            padding: 9px 10px;
             border: none;
+            border-radius: 10px;
             background-color: var(--input-bg);
             color: var(--text-color);
             font-family: inherit;
@@ -260,21 +273,14 @@
         }
 
         textarea {
-            width: 100%;
-            border-radius: 8px;
-            border: none;
-            background-color: var(--input-bg);
-            color: var(--text-color);
-            font-family: inherit;
-            font-size: 0.8rem;
-            padding: 8px 10px;
             resize: vertical;
+            min-height: 60px;
         }
 
         input[type="range"] {
             -webkit-appearance: none;
             background: transparent;
-            flex: 1;
+            width: 100%;
         }
 
         input[type="range"]::-webkit-slider-thumb {
@@ -283,80 +289,50 @@
             width: 16px;
             border-radius: 50%;
             background: var(--accent-color);
-            cursor: pointer;
             margin-top: -6px;
+            cursor: pointer;
         }
 
         input[type="range"]::-webkit-slider-runnable-track {
             width: 100%;
             height: 4px;
-            background: #777;
+            background: #888;
             border-radius: 2px;
         }
 
         .file-btn {
             background-color: var(--input-bg);
             color: var(--text-color);
-            padding: 8px 10px;
+            padding: 10px 14px;
             border-radius: 10px;
             cursor: pointer;
-            display: inline-flex;
+            display: flex;
             align-items: center;
             gap: 8px;
-            font-weight: 600;
-            font-size: 0.8rem;
-            border: none;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: bold;
         }
 
         .file-btn:hover {
             background-color: #444;
         }
 
-        .toggle-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.8rem;
-            margin-bottom: 6px;
-        }
-
-        .toggle-row label {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .toggle-row input[type="checkbox"] {
-            width: 32px;
-            height: 16px;
-        }
-
-        .pill-btn {
-            border-radius: 999px;
-            border: none;
-            padding: 5px 9px;
-            font-size: 0.75rem;
-            cursor: pointer;
-            background-color: rgba(255,255,255,0.06);
-            color: var(--text-color);
-        }
-
-        .pill-btn.active {
-            background-color: var(--accent-color);
-            color: #000;
+        .light-mode .file-btn:hover {
+            background-color: #d1d1d1;
         }
 
         .action-btn {
             background-color: var(--accent-color);
             color: #000;
             border: none;
-            padding: 10px 12px;
-            border-radius: 10px;
-            font-size: 0.85rem;
-            font-weight: 700;
+            padding: 11px 14px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: bold;
             cursor: pointer;
             width: 100%;
-            margin-top: 6px;
+            transition: transform 0.06s;
         }
 
         .action-btn.secondary {
@@ -364,397 +340,2599 @@
             color: #fff;
         }
 
-        .action-btn.danger {
-            background-color: #ff453a;
-            color: #fff;
+        .action-btn:active {
+            transform: scale(0.98);
         }
 
-        .guide-text {
-            font-size: 0.75rem;
-            color: #999;
-            text-align: center;
-        }
-
-        .small-tag {
-            font-size: 0.7rem;
-            padding: 2px 6px;
-            border-radius: 999px;
-            background: rgba(0,0,0,0.3);
-        }
-
-        .row {
+        .toggle-row {
             display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
         }
 
-        .row > * {
-            flex: 1 1 120px;
+        .toggle-row span {
+            font-size: 0.8rem;
         }
 
-        .mini-template-list {
+        .toggle-switch {
+            position: relative;
+            width: 40px;
+            height: 20px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #555;
+            -webkit-transition: .2s;
+            transition: .2s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            -webkit-transition: .2s;
+            transition: .2s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .slider {
+            background-color: var(--accent-color);
+        }
+
+        .toggle-switch input:checked + .slider:before {
+            -webkit-transform: translateX(20px);
+            -ms-transform: translateX(20px);
+            transform: translateX(20px);
+        }
+
+        .divider {
+            border-top: 1px solid #555;
+            margin: 6px 0 6px 0;
+        }
+
+        .chip-row {
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
         }
 
-        .mini-template {
-            width: 70px;
-            height: 40px;
-            border-radius: 6px;
-            background: #333;
-            position: relative;
-            border: 1px solid #555;
-            cursor: pointer;
-        }
-
-        .mini-template span {
-            position: absolute;
-            font-size: 0.4rem;
-            color: #fff;
-        }
-
-        .mini-template .mt-main {
-            bottom: 2px;
-            left: 2px;
-            right: 2px;
-            height: 6px;
-            background: #ffdb4d;
-        }
-
-        .mini-template .mt-sub {
-            top: 2px;
-            right: 2px;
-            width: 18px;
-            height: 4px;
-            background: #fff;
-        }
-
-        .mini-template .mt-logo {
-            top: 2px;
-            left: 2px;
-            width: 6px;
-            height: 6px;
-            background: #00ffa3;
-        }
-
-        .template-label {
-            font-size: 0.7rem;
-            text-align: center;
-            margin-top: 2px;
-        }
-
-        .project-list {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            max-height: 120px;
-            overflow-y: auto;
-            font-size: 0.8rem;
-        }
-
-        .project-item {
-            padding: 5px 8px;
-            border-radius: 8px;
-            background-color: rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-        }
-
-        .project-item span {
-            flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+        .chip {
+            font-size: 0.75rem;
             padding: 4px 8px;
             border-radius: 999px;
-            font-size: 0.7rem;
-            background-color: rgba(255,255,255,0.1);
-            gap: 4px;
+            background-color: var(--input-bg);
+            cursor: pointer;
+            border: none;
         }
 
-        .hint {
-            font-size: 0.73rem;
+        .chip:hover {
+            opacity: 0.9;
+        }
+
+        .small-label {
+            font-size: 0.75rem;
             color: #aaa;
         }
 
-        @media (max-width: 800px) {
+        .radio-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            font-size: 0.8rem;
+        }
+
+        .radio-row label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .badge-button-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .badge-btn {
+            border-radius: 999px;
+            border: none;
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            background-color: #444;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .badge-btn:hover {
+            background-color: #666;
+        }
+
+        .recent-projects {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .recent-project-btn {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 999px;
+            border: none;
+            background-color: #444;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .project-info {
+            font-size: 0.75rem;
+            color: #aaa;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 0.95rem;
+            }
             #controls-container {
                 padding-bottom: 80px;
-            }
-            h1 {
-                font-size: 1rem;
             }
         }
     </style>
 </head>
 <body>
+
 <header>
-    <h1>
-        Image PLUS
-        <span>Thumbnail Studio</span>
-    </h1>
+    <h1>Image PLUS <span>YT Thumbnail</span></h1>
     <div class="header-right">
-        <select id="ui-language-select" style="font-size:0.75rem;padding:4px 6px;border-radius:999px;border:none;background-color:var(--input-bg);color:var(--text-color);">
-            <option value="ko">KR</option>
-            <option value="en">EN</option>
-        </select>
-        <button class="icon-btn" id="toggle-mode">
+        <button class="pill-btn secondary" id="lang-toggle">KR</button>
+
+        <button class="icon-btn" id="toggle-mode" title="라이트/다크 모드">
             <img id="toggle-icon" src="https://navercorp.com/img/common/ic-darkmode.svg" alt="Toggle" width="22" height="22">
         </button>
-        <button class="icon-btn" id="redirect-button">
-            <img src="https://www.svgrepo.com/show/532225/table-layout.svg" alt="Link" width="16" height="16">
+
+        <button class="icon-btn" id="undo-btn" title="되돌리기 (Ctrl+Z)">
+            ⤺
+        </button>
+        <button class="icon-btn" id="redo-btn" title="다시하기 (Ctrl+Shift+Z)">
+            ⤻
+        </button>
+
+        <button class="icon-btn" id="redirect-button"
+                style="background:var(--accent-color); width:32px; height:32px; display:flex; align-items:center; justify-content:center;"
+                title="데스크톱 버전 열기">
+            <img src="https://www.svgrepo.com/show/532225/table-layout.svg" alt="Link" width="18" height="18">
         </button>
     </div>
 </header>
 
-<section id="canvas-section">
-    <div id="canvas-wrapper">
-        <canvas id="main-canvas" width="1920" height="1080"></canvas>
-    </div>
-    <div id="preview-wrapper">
-        <canvas id="preview-canvas" width="320" height="180"></canvas>
+<div id="canvas-wrapper">
+    <canvas id="thumbnail" width="1920" height="1080"></canvas>
+</div>
+
+<div class="preview-wrapper">
+    <div class="preview-card">
+        <canvas id="preview" width="320" height="180"></canvas>
         <div>
-            <div style="font-weight:600;font-size:0.8rem;">YouTube 미리보기</div>
-            <div class="hint">실제 목록에 보이는 크기 느낌을 확인하세요.</div>
+            <div class="preview-label">유튜브 목록 크기 미리보기</div>
+            <div class="preview-label" id="preview-size-label">320 x 180 (축소 보기)</div>
         </div>
     </div>
-    <div id="zoom-row">
-        <span class="input-label">뷰 확대</span>
-        <input type="range" id="view-zoom" min="0.5" max="2.0" step="0.05" value="1">
-        <span id="zoom-value" style="font-size:0.75rem;">100%</span>
-    </div>
-    <p class="guide-text">💡 캔버스 위에서 텍스트·로고·도형을 터치/드래그로 이동할 수 있습니다. (두 손가락 핀치로 확대/축소)</p>
-</section>
+</div>
 
-<section id="controls-container">
+<p class="guide-text">
+    💡 캔버스에서 텍스트/로고를 터치 혹은 클릭 후 드래그해서 이동할 수 있습니다.  
+    (레이아웃 템플릿 적용 후 미세 조정도 가능해요)
+</p>
+
+<div id="controls-container">
+
+    <!-- 탭 -->
     <div class="tabs">
-        <button class="tab-btn active" data-tab="tab-bg">배경/로고</button>
+        <button class="tab-btn active" data-tab="tab-bg">배경 · 로고</button>
         <button class="tab-btn" data-tab="tab-text">텍스트</button>
-        <button class="tab-btn" data-tab="tab-layout">레이아웃/가이드</button>
-        <button class="tab-btn" data-tab="tab-effects">효과/스타일</button>
+        <button class="tab-btn" data-tab="tab-layout">레이아웃 · 가이드</button>
         <button class="tab-btn" data-tab="tab-project">프로젝트</button>
         <button class="tab-btn" data-tab="tab-save">저장</button>
     </div>
 
-    <!-- 배경 / 로고 -->
+    <!-- 배경/로고 탭 -->
     <div id="tab-bg" class="control-group active">
-        <div class="section">
-            <div class="section-title">
-                <span>배경 이미지</span>
-                <span class="small-tag">Background</span>
-            </div>
+
+        <!-- 배경 -->
+        <div>
+            <div class="section-title">배경 이미지</div>
+            <label class="file-btn">
+                📸 배경 이미지 선택
+                <input type="file" id="image-upload" accept="image/*" style="display:none;">
+            </label>
+
+            <div class="divider"></div>
+
             <div class="input-row">
-                <button class="file-btn" id="bg-upload-btn">📸 배경 이미지 선택</button>
-                <input type="file" id="bg-upload-input" accept="image/*" style="display:none;">
-            </div>
-            <div class="toggle-row">
-                <label>
-                    <input type="checkbox" id="bg-filter-enable" checked>
-                    <span>배경 보정 사용</span>
-                </label>
-            </div>
-            <div class="input-row">
-                <span class="input-label">확대/크롭</span>
-                <input type="range" id="bg-zoom" min="1.0" max="2.5" step="0.01" value="1.0">
-            </div>
-            <div class="input-row">
-                <span class="input-label">좌우 이동</span>
-                <input type="range" id="bg-offset-x" min="-960" max="960" step="1" value="0">
-            </div>
-            <div class="input-row">
-                <span class="input-label">상하 이동</span>
-                <input type="range" id="bg-offset-y" min="-540" max="540" step="1" value="0">
+                <span class="input-label">배경 확대/축소</span>
+                <input type="range" id="bg-scale" min="0.5" max="2.0" step="0.05" value="1.0">
             </div>
             <div class="input-row">
                 <span class="input-label">밝기</span>
-                <input type="range" id="bg-brightness" min="-100" max="100" step="1" value="0">
+                <input type="range" id="bg-brightness" min="0.3" max="1.7" step="0.05" value="1.0">
             </div>
             <div class="input-row">
                 <span class="input-label">대비</span>
-                <input type="range" id="bg-contrast" min="-100" max="100" step="1" value="0">
+                <input type="range" id="bg-contrast" min="0.3" max="1.7" step="0.05" value="1.0">
             </div>
             <div class="input-row">
                 <span class="input-label">블러</span>
-                <input type="range" id="bg-blur" min="0" max="10" step="0.5" value="0">
+                <input type="range" id="bg-blur" min="0" max="12" step="1" value="0">
             </div>
+
             <div class="input-row">
                 <span class="input-label">필터</span>
-                <div class="row">
-                    <button class="pill-btn bg-filter-btn active" data-filter="none">기본</button>
-                    <button class="pill-btn bg-filter-btn" data-filter="bw">흑백</button>
-                    <button class="pill-btn bg-filter-btn" data-filter="warm">따뜻함</button>
-                    <button class="pill-btn bg-filter-btn" data-filter="cool">차가움</button>
+                <div class="chip-row">
+                    <button class="chip" data-filter="none">기본</button>
+                    <button class="chip" data-filter="bw">흑백</button>
+                    <button class="chip" data-filter="warm">따뜻함</button>
+                    <button class="chip" data-filter="cool">차가움</button>
                 </div>
             </div>
-            <div class="toggle-row" style="margin-top:6px;">
-                <label>
-                    <input type="checkbox" id="bg-overlay-enable">
-                    <span>색상 오버레이</span>
+
+            <div class="divider"></div>
+
+            <div class="toggle-row">
+                <span>색상 오버레이</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="overlay-enabled">
+                    <span class="slider"></span>
                 </label>
-                <input type="color" id="bg-overlay-color" value="#000000" style="width:40px;height:24px;border-radius:6px;border:none;">
+            </div>
+            <div class="input-row">
+                <span class="input-label">오버레이 색상</span>
+                <input type="color" id="overlay-color" value="#000000" style="max-width:120px;">
             </div>
             <div class="input-row">
                 <span class="input-label">오버레이 강도</span>
-                <input type="range" id="bg-overlay-alpha" min="0" max="1" step="0.05" value="0.4">
+                <input type="range" id="overlay-alpha" min="0" max="0.9" step="0.05" value="0.4">
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="section-sub">배경 위치 미세 조정</div>
+            <div class="chip-row">
+                <button class="chip" data-bg-move="0,-20">▲</button>
+                <button class="chip" data-bg-move="-20,0">◀︎</button>
+                <button class="chip" data-bg-move="20,0">▶︎</button>
+                <button class="chip" data-bg-move="0,20">▼</button>
+                <button class="chip" id="bg-reset">초기화</button>
             </div>
         </div>
 
-        <div class="section">
-            <div class="section-title">
-                <span>로고 / 아이콘</span>
-                <span class="small-tag">Multiple Logos</span>
-            </div>
+        <!-- 로고 -->
+        <div class="divider"></div>
+        <div>
+            <div class="section-title">로고 레이어</div>
+            <div class="section-sub">최대 3개 로고를 사용할 수 있어요.</div>
+
             <div class="input-row">
-                <button class="file-btn" id="logo-upload-btn">🖼️ 로고 추가</button>
-                <input type="file" id="logo-upload-input" accept="image/*" style="display:none;">
-            </div>
-            <div class="hint" style="margin-bottom:6px;">여러 개의 로고를 추가하고, 목록에서 선택해 조정할 수 있습니다.</div>
-            <div class="input-row">
-                <span class="input-label">선택 로고</span>
-                <select id="logo-select">
-                    <option value="">(로고 없음)</option>
+                <span class="input-label">현재 로고</span>
+                <select id="logo-index-select">
+                    <option value="0">로고 1</option>
+                    <option value="1">로고 2</option>
+                    <option value="2">로고 3</option>
                 </select>
             </div>
+
+            <label class="file-btn">
+                🖼️ 선택한 로고 이미지 설정
+                <input type="file" id="logo-upload" accept="image/*" style="display:none;">
+            </label>
+
             <div class="toggle-row">
-                <label>
-                    <input type="checkbox" id="logo-visible-toggle" checked>
-                    <span>선택 로고 보이기</span>
+                <span>로고 사용</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="logo-enabled">
+                    <span class="slider"></span>
                 </label>
             </div>
+
             <div class="input-row">
                 <span class="input-label">크기</span>
-                <input type="range" id="logo-scale" min="0.2" max="3.0" step="0.05" value="1.0">
+                <input type="range" id="logo-scale" min="0.2" max="2.0" step="0.05" value="1.0">
             </div>
             <div class="input-row">
                 <span class="input-label">투명도</span>
-                <input type="range" id="logo-opacity" min="0.1" max="1.0" step="0.05" value="1.0">
+                <input type="range" id="logo-opacity" min="0.1" max="1" step="0.05" value="1.0">
             </div>
-            <div class="input-row">
-                <span class="input-label">코너 위치</span>
-                <div class="row">
-                    <button class="pill-btn logo-pos-btn" data-pos="tl">좌상단</button>
-                    <button class="pill-btn logo-pos-btn" data-pos="tr">우상단</button>
-                    <button class="pill-btn logo-pos-btn" data-pos="bl">좌하단</button>
-                    <button class="pill-btn logo-pos-btn" data-pos="br">우하단</button>
-                </div>
+
+            <div class="section-sub">위치 프리셋</div>
+            <div class="chip-row">
+                <button class="chip" data-logo-pos="lt">좌상단</button>
+                <button class="chip" data-logo-pos="rt">우상단</button>
+                <button class="chip" data-logo-pos="lb">좌하단</button>
+                <button class="chip" data-logo-pos="rb">우하단</button>
             </div>
         </div>
     </div>
 
-    <!-- 텍스트 -->
+    <!-- 텍스트 탭 -->
     <div id="tab-text" class="control-group">
         <!-- 메인 텍스트 -->
-        <div class="section">
-            <div class="section-title">
-                <span>하단 메인 텍스트</span>
-                <span class="small-tag">Main Title</span>
-            </div>
-            <div class="toggle-row">
-                <label>
-                    <input type="checkbox" id="main-text-visible" checked>
-                    <span>사용</span>
-                </label>
-                <span class="hint">(r),(g),(b),(y),(k) 태그로 색상 강조 가능</span>
+        <div>
+            <div class="section-title">메인 텍스트 (하단 큰 제목)</div>
+            <div class="section-sub">
+                색상코드: (r)빨강(r), (g)연두(g), (b)파랑(b), (y)노랑(y), (k)검정(k)
             </div>
             <div class="input-row">
-                <span class="input-label">내용</span>
-                <input type="text" id="main-text-input" placeholder="예: (y)한 번에(y) 정리하는 (b)필수 개념(b)">
+                <input type="text" id="main-text-input" placeholder="강렬한 메인 문구를 입력해보세요">
+            </div>
+
+            <div class="chip-row">
+                <button class="chip" id="idea-btn">아이디어 제안</button>
+                <button class="chip" data-style-preset="white-outline">흰 + 검 외곽</button>
+                <button class="chip" data-style-preset="yellow-black">노랑 + 검 그림자</button>
+                <button class="chip" data-style-preset="red-white">빨강 + 흰 외곽</button>
+            </div>
+
+            <div class="input-row">
+                <span class="input-label">크기</span>
+                <input type="range" id="main-text-size" min="80" max="260" step="5" value="180">
             </div>
             <div class="input-row">
                 <span class="input-label">폰트</span>
                 <select id="main-text-font">
-                    <option value="SBAggroB">SBAggroB</option>
-                    <option value="LINESeedKR-Bd">LINESeedKR</option>
-                    <option value="RiaSans-ExtraBold">RiaSans</option>
-                    <option value="system-ui">System UI</option>
+                    <option value="SBAggroB">SBAggroB (한글 강조)</option>
+                    <option value="LINESeedKR-Bd">LINESeed Bold</option>
+                    <option value="RiaSans-ExtraBold">RiaSans ExtraBold</option>
+                    <option value="sans-serif">기본 Sans</option>
                 </select>
             </div>
-            <div class="row">
-                <div class="input-row">
-                    <span class="input-label">크기</span>
-                    <input type="range" id="main-text-size" min="80" max="260" step="5" value="180">
-                </div>
-                <div class="input-row">
-                    <span class="input-label">정렬</span>
-                    <select id="main-text-align">
-                        <option value="left">왼쪽</option>
-                        <option value="center">가운데</option>
-                        <option value="right">오른쪽</option>
-                    </select>
-                </div>
-            </div>
-            <div class="row">
-                <div class="input-row">
-                    <span class="input-label">줄 간격</span>
-                    <input type="range" id="main-text-lineHeight" min="1.0" max="1.8" step="0.05" value="1.1">
-                </div>
-                <div class="input-row">
-                    <span class="input-label">자간</span>
-                    <input type="range" id="main-text-letterSpacing" min="0" max="40" step="1" value="0">
-                </div>
-            </div>
-            <div class="row">
-                <div class="input-row">
-                    <span class="input-label">외곽선</span>
-                    <input type="range" id="main-text-outline" min="0" max="0.08" step="0.005" value="0.03">
-                </div>
-                <div class="input-row">
-                    <span class="input-label">그림자</span>
-                    <input type="range" id="main-text-shadow" min="0" max="40" step="1" value="10">
-                </div>
-            </div>
-            <div class="toggle-row">
-                <label>
-                    <input type="checkbox" id="main-text-wrap" checked>
-                    <span>자동 줄바꿈</span>
-                </label>
-                <div>
-                    <input type="color" id="main-text-color" value="#ffffff" style="width:40px;height:24px;border-radius:6px;border:none;">
-                </div>
-            </div>
-            <div class="row">
-                <button class="pill-btn main-style-preset" data-preset="whiteOutline">흰+검 외곽</button>
-                <button class="pill-btn main-style-preset" data-preset="yellowBlack">노랑+검</button>
-                <button class="pill-btn main-style-preset" data-preset="redWhite">빨강+흰</button>
-            </div>
-            <div class="row" style="margin-top:6px;">
-                <button class="pill-btn main-color-insert" data-color-tag="(r)">(r)빨강(r)</button>
-                <button class="pill-btn main-color-insert" data-color-tag="(g)">(g)초록(g)</button>
-                <button class="pill-btn main-color-insert" data-color-tag="(b)">(b)파랑(b)</button>
-                <button class="pill-btn main-color-insert" data-color-tag="(y)">(y)노랑(y)</button>
-                <button class="pill-btn main-color-insert" data-color-tag="(k)">(k)검정(k)</button>
-            </div>
-        </div>
 
-        <!-- 상단 서브 텍스트 -->
-        <div class="section">
-            <div class="section-title">
-                <span>우측 상단 텍스트</span>
-                <span class="small-tag">Top Right</span>
+            <div class="input-row">
+                <span class="input-label">정렬</span>
+                <select id="main-text-align">
+                    <option value="left">왼쪽</option>
+                    <option value="center">가운데</option>
+                    <option value="right">오른쪽</option>
+                </select>
             </div>
+
             <div class="toggle-row">
-                <label>
-                    <input type="checkbox" id="sub-text-visible" checked>
-                    <span>사용</span>
+                <span>자동 줄바꿈</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="main-wrap" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="input-row">
+                <span class="input-label">줄 간격</span>
+                <input type="range" id="main-line-height" min="0.9" max="1.5" step="0.05" value="1.1">
+            </div>
+
+            <div class="input-row">
+                <span class="input-label">자간</span>
+                <input type="range" id="main-letter-spacing" min="-2" max="8" step="0.5" value="0">
+            </div>
+
+            <div class="input-row">
+                <span class="input-label">외곽선 두께</span>
+                <input type="range" id="main-outline" min="0" max="0.12" step="0.01" value="0.04">
+            </div>
+
+            <div class="input-row">
+                <span class="input-label">그림자 강도</span>
+                <input type="range" id="main-shadow" min="0" max="40" step="1" value="18">
+            </div>
+
+            <div class="toggle-row">
+                <span>직접 색상 선택 사용 (태그 무시)</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="main-custom-color-enabled">
+                    <span class="slider"></span>
                 </label>
             </div>
             <div class="input-row">
-                <span class="input-label">내용</span>
-                <input type="text" id="sub-text-input" placeholder="예: 24.03.21">
+                <span class="input-label">기본 색상</span>
+                <input type="color" id="main-custom-color" value="#ffffff" style="max-width:120px;">
             </div>
-            <div class="row">
-                <div class="input-row">
-                    <span class="input-label">폰트</span>
-                    <select id="sub-text-font">
-                        <option value="RiaSans-ExtraBold">RiaSans</option>
-                        <option value="SBAggroB">SBAggroB</option>
-                        <option
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- 서브 텍스트 -->
+        <div>
+            <div class="section-title">서브 텍스트 (우측 상단 · 날짜/숫자)</div>
+            <div class="input-row">
+                <input type="text" id="sub-text-input" placeholder="날짜/에피소드 등" />
+            </div>
+            <div class="input-row">
+                <span class="input-label">크기</span>
+                <input type="range" id="sub-text-size" min="40" max="180" step="2" value="90">
+            </div>
+            <div class="input-row">
+                <span class="input-label">폰트</span>
+                <select id="sub-text-font">
+                    <option value="RiaSans-ExtraBold">RiaSans ExtraBold</option>
+                    <option value="SBAggroB">SBAggroB</option>
+                    <option value="LINESeedKR-Bd">LINESeed</option>
+                    <option value="sans-serif">기본 Sans</option>
+                </select>
+            </div>
+            <div class="input-row">
+                <span class="input-label">정렬</span>
+                <select id="sub-text-align">
+                    <option value="right">오른쪽</option>
+                    <option value="center">가운데</option>
+                    <option value="left">왼쪽</option>
+                </select>
+            </div>
+            <div class="input-row">
+                <span class="input-label">외곽선</span>
+                <input type="range" id="sub-outline" min="0" max="0.12" step="0.01" value="0.03">
+            </div>
+            <div class="input-row">
+                <span class="input-label">그림자</span>
+                <input type="range" id="sub-shadow" min="0" max="30" step="1" value="12">
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- 추가 텍스트 (중앙 등) -->
+        <div>
+            <div class="section-title">추가 텍스트 (중앙 부제/설명)</div>
+            <div class="toggle-row">
+                <span>추가 텍스트 사용</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="extra-enabled">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="input-row">
+                <input type="text" id="extra-text-input" placeholder="부제/짧은 설명 텍스트">
+            </div>
+            <div class="input-row">
+                <span class="input-label">크기</span>
+                <input type="range" id="extra-text-size" min="40" max="150" step="2" value="70">
+            </div>
+            <div class="input-row">
+                <span class="input-label">폰트</span>
+                <select id="extra-text-font">
+                    <option value="LINESeedKR-Bd">LINESeed</option>
+                    <option value="SBAggroB">SBAggroB</option>
+                    <option value="RiaSans-ExtraBold">RiaSans</option>
+                    <option value="sans-serif">기본 Sans</option>
+                </select>
+            </div>
+            <div class="input-row">
+                <span class="input-label">정렬</span>
+                <select id="extra-text-align">
+                    <option value="center">가운데</option>
+                    <option value="left">왼쪽</option>
+                    <option value="right">오른쪽</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- 카테고리 배지 / 리본 -->
+        <div>
+            <div class="section-title">카테고리 배지 & 리본</div>
+
+            <div class="toggle-row">
+                <span>좌상단 카테고리 배지</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="badge-enabled" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="input-row">
+                <span class="input-label">카테고리 선택</span>
+                <select id="badge-category">
+                    <option value="">선택 안 함</option>
+                    <option value="VLOG">VLOG</option>
+                    <option value="GAME">GAME</option>
+                    <option value="TUTORIAL">TUTORIAL</option>
+                    <option value="REVIEW">REVIEW</option>
+                    <option value="STUDY">STUDY</option>
+                    <option value="LIVE">LIVE</option>
+                </select>
+            </div>
+
+            <div class="input-row">
+                <span class="input-label">배지 텍스트</span>
+                <input type="text" id="badge-text-input" placeholder="예: VLOG, CLIP, EP.01">
+            </div>
+
+            <div class="input-row">
+                <span class="input-label">배경 색</span>
+                <input type="color" id="badge-bg-color" value="#ff4757" style="max-width:120px;">
+            </div>
+            <div class="input-row">
+                <span class="input-label">텍스트 색</span>
+                <input type="color" id="badge-text-color" value="#ffffff" style="max-width:120px;">
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="toggle-row">
+                <span>우상단 리본 (NEW/LIVE 등)</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="ribbon-enabled">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="input-row">
+                <span class="input-label">리본 텍스트</span>
+                <input type="text" id="ribbon-text-input" placeholder="예: NEW, LIVE, FULL">
+            </div>
+            <div class="input-row">
+                <span class="input-label">리본 색</span>
+                <input type="color" id="ribbon-color" value="#ffa502" style="max-width:120px;">
+            </div>
+        </div>
+    </div>
+
+    <!-- 레이아웃/가이드 탭 -->
+    <div id="tab-layout" class="control-group">
+        <div>
+            <div class="section-title">하단 그라데이션 & 도형 강조</div>
+
+            <div class="toggle-row">
+                <span>하단 그라데이션 박스</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="gradient-enabled" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="input-row">
+                <span class="input-label">높이</span>
+                <input type="range" id="gradient-height" min="100" max="500" step="10" value="260">
+            </div>
+            <div class="input-row">
+                <span class="input-label">강도</span>
+                <input type="range" id="gradient-alpha" min="0" max="0.95" step="0.05" value="0.75">
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="toggle-row">
+                <span>메인 텍스트 뒷배경 박스</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="main-bg-box-enabled">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="input-row">
+                <span class="input-label">박스 색상</span>
+                <input type="color" id="main-bg-box-color" value="#000000" style="max-width:120px;">
+            </div>
+            <div class="input-row">
+                <span class="input-label">박스 투명도</span>
+                <input type="range" id="main-bg-box-alpha" min="0" max="0.9" step="0.05" value="0.4">
+            </div>
+
+            <div class="toggle-row">
+                <span>메인 텍스트 밑줄</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="main-underline-enabled">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="toggle-row">
+                <span>중요 위치 화살표</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="arrow-enabled">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="section-sub">화살표는 화면 중앙 주위에 표시되며, 메인 피사체를 가리키는 느낌을 줄 수 있습니다.</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div>
+            <div class="section-title">가이드 & 스냅</div>
+
+            <div class="toggle-row">
+                <span>3x3 그리드 표시</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="grid-enabled">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="toggle-row">
+                <span>중앙/여백 가이드 표시</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="guides-enabled">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="toggle-row">
+                <span>얼굴/중요 영역 가이드</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="important-area-enabled">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="toggle-row">
+                <span>스냅(중앙/여백 맞추기)</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="snap-enabled" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div>
+            <div class="section-title">레이아웃 템플릿</div>
+            <div class="section-sub">템플릿을 선택하면 텍스트/로고 위치가 자동으로 배치됩니다. 이후 드래그로 미세 조정하세요.</div>
+
+            <div class="input-row">
+                <span class="input-label">템플릿</span>
+                <select id="layout-template-select">
+                    <option value="">선택 안 함</option>
+                    <option value="face-left">왼쪽 얼굴 + 오른쪽 텍스트</option>
+                    <option value="face-right">오른쪽 얼굴 + 왼쪽 텍스트</option>
+                    <option value="center-face">중앙 얼굴 + 상하 텍스트</option>
+                    <option value="no-face-text-only">텍스트 강조형</option>
+                </select>
+            </div>
+
+            <button class="action-btn secondary" id="apply-template-btn">템플릿 적용</button>
+
+            <div class="divider"></div>
+
+            <div class="section-title">정렬 보조</div>
+            <div class="section-sub">
+                캔버스에서 요소를 클릭하면 선택됩니다.  
+                방향키(←↑↓→)로 조금씩 이동할 수 있어요.
+            </div>
+            <div class="chip-row">
+                <button class="chip" id="select-main-text">메인 텍스트 선택</button>
+                <button class="chip" id="select-sub-text">서브 텍스트 선택</button>
+                <button class="chip" id="select-extra-text">추가 텍스트 선택</button>
+                <button class="chip" id="select-logo1">로고 1 선택</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 프로젝트 탭 -->
+    <div id="tab-project" class="control-group">
+        <div>
+            <div class="section-title">자동 저장 & 최근 작업</div>
+            <div class="section-sub">
+                변경 시 자동으로 브라우저에 저장됩니다(LocalStorage). 같은 브라우저에서 다시 접속하면 이어서 작업할 수 있어요.
+            </div>
+            <div class="project-info" id="autosave-status">자동 저장: 준비됨</div>
+
+            <div class="divider"></div>
+
+            <div class="section-title">최근 프로젝트</div>
+            <div class="section-sub">최근 저장된 썸네일 설정 3개까지 기억해둡니다.</div>
+            <div class="recent-projects" id="recent-projects"></div>
+            <div class="chip-row" style="margin-top:6px;">
+                <button class="chip" id="save-current-to-recent">현재 설정을 최근에 추가</button>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div>
+            <div class="section-title">프로젝트 리셋</div>
+            <button class="action-btn secondary" id="reset-all-btn">전체 초기화</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div>
+            <div class="section-title">프로젝트 내보내기/불러오기</div>
+            <div class="section-sub">
+                프로젝트를 JSON 파일로 저장해두었다가 나중에 불러올 수 있습니다.
+            </div>
+
+            <div class="chip-row">
+                <button class="chip" id="export-project-btn">JSON 내보내기</button>
+                <label class="chip">
+                    JSON 불러오기
+                    <input type="file" id="import-project-file" accept="application/json" style="display:none;">
+                </label>
+            </div>
+
+            <div class="section-sub">내보낸 JSON은 메모장 등으로 열어볼 수 있습니다.</div>
+        </div>
+    </div>
+
+    <!-- 저장 탭 -->
+    <div id="tab-save" class="control-group">
+        <div>
+            <div class="section-title">출력 설정</div>
+
+            <div class="radio-row">
+                <label>
+                    <input type="radio" name="export-res" value="1080" checked>
+                    1920×1080 (고해상도)
+                </label>
+                <label>
+                    <input type="radio" name="export-res" value="720">
+                    1280×720 (유튜브 권장)
+                </label>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="section-title">JPG 압축 품질</div>
+            <div class="section-sub">파일 크기가 큰 경우 0.6~0.8 사이를 추천합니다.</div>
+            <div class="input-row">
+                <span class="input-label">품질</span>
+                <input type="range" id="jpg-quality" min="0.4" max="1" step="0.05" value="0.8">
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div>
+            <button id="save-png-button" class="action-btn">PNG로 저장</button>
+            <button id="save-jpg-button" class="action-btn secondary" style="margin-top:4px;">JPG로 저장 (압축)</button>
+            <div id="file-size-warning" style="color:#ff453a; text-align:center; display:none; margin-top:10px; font-size:0.8rem;"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==========================
+    // 기본 상태 및 유틸
+    // ==========================
+    const canvas = document.getElementById('thumbnail');
+    const ctx = canvas.getContext('2d');
+    const previewCanvas = document.getElementById('preview');
+    const pctx = previewCanvas.getContext('2d');
+
+    const today = new Date();
+
+    // 텍스트 아이디어 (KR/EN)
+    const ideaPool = {
+        ko: [
+            '(y)이것도 모르면(y) (r)손해!(r)',
+            '(y)3분 만에 정리하는(y) (b)핵심 개념(b)',
+            '(r)절대(r) (k)놓치면 안 되는(k) 포인트',
+            '(y)진짜(y) (b)현실적인(b) 꿀팁 모음',
+            '(r)○○○(r)을 (y)완전히(y) 바꿔줄 방법'
+        ],
+        en: [
+            '(y)You MUST(y) (r)know this(r)',
+            '(y)3 mins(y) to (b)understand everything(b)',
+            '(r)Don’t miss(r) (k)this one(k)',
+            '(y)Real(y) (b)game changer(b)',
+            '(r)Stop doing(r) (y)this(y) right now'
+        ]
+    };
+
+    // 상태
+    const state = {
+        language: 'ko',
+
+        bg: {
+            image: null,
+            brightness: 1.0,
+            contrast: 1.0,
+            blur: 0,
+            scale: 1.0,
+            offsetX: 0,
+            offsetY: 0,
+            filter: 'none',
+            overlayEnabled: false,
+            overlayColor: '#000000',
+            overlayAlpha: 0.4
+        },
+
+        gradient: {
+            enabled: true,
+            height: 260,
+            alpha: 0.75
+        },
+
+        mainText: {
+            enabled: true,
+            text: '',
+            x: 60,
+            y: 1004,
+            size: 180,
+            font: 'SBAggroB',
+            align: 'left',
+            wrap: true,
+            lineHeight: 1.1,
+            letterSpacing: 0,
+            outlineScale: 0.04,
+            shadowBlur: 18,
+            customColorEnabled: false,
+            customColor: '#ffffff'
+        },
+
+        subText: {
+            enabled: true,
+            text: '',
+            x: canvas.width - 60,
+            y: 120,
+            size: 90,
+            font: 'RiaSans-ExtraBold',
+            align: 'right',
+            outlineScale: 0.03,
+            shadowBlur: 12
+        },
+
+        extraText: {
+            enabled: false,
+            text: '',
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            size: 70,
+            font: 'LINESeedKR-Bd',
+            align: 'center'
+        },
+
+        badge: {
+            enabled: true,
+            text: '',
+            category: '',
+            x: 60,
+            y: 70,
+            bgColor: '#ff4757',
+            textColor: '#ffffff'
+        },
+
+        ribbon: {
+            enabled: false,
+            text: '',
+            color: '#ffa502'
+        },
+
+        mainBgBox: {
+            enabled: false,
+            color: '#000000',
+            alpha: 0.4
+        },
+
+        underline: {
+            mainEnabled: false
+        },
+
+        arrow: {
+            enabled: false
+        },
+
+        guides: {
+            grid: false,
+            guides: false,
+            importantArea: false,
+            snap: true
+        },
+
+        logos: [
+            { image: null, x: 40, y: 40, baseWidth: 0, baseHeight: 0, scale: 1.0, opacity: 1.0, enabled: false },
+            { image: null, x: 40, y: 40, baseWidth: 0, baseHeight: 0, scale: 1.0, opacity: 1.0, enabled: false },
+            { image: null, x: 40, y: 40, baseWidth: 0, baseHeight: 0, scale: 1.0, opacity: 1.0, enabled: false }
+        ],
+
+        activeElement: null, // {type:'mainText'|'subText'|'extraText'|'logo', index?}
+        dragging: null,
+        dragOffset: { x: 0, y: 0 },
+
+        export: {
+            resolution: 1080,
+            jpgQuality: 0.8
+        },
+
+        history: {
+            stack: [],
+            index: -1
+        }
+    };
+
+    // 초기 서브 텍스트에 오늘 날짜
+    state.subText.text = `${today.getFullYear().toString().slice(2)}.${(today.getMonth() + 1).toString().padStart(2, '0')}.${today.getDate().toString().padStart(2, '0')}`;
+
+    // ==========================
+    // 히스토리 (Undo/Redo)
+    // ==========================
+    function getConfigSnapshot() {
+        // 이미지 객체 제외, 좌표/텍스트/옵션만 저장
+        return {
+            language: state.language,
+            bg: {
+                brightness: state.bg.brightness,
+                contrast: state.bg.contrast,
+                blur: state.bg.blur,
+                scale: state.bg.scale,
+                offsetX: state.bg.offsetX,
+                offsetY: state.bg.offsetY,
+                filter: state.bg.filter,
+                overlayEnabled: state.bg.overlayEnabled,
+                overlayColor: state.bg.overlayColor,
+                overlayAlpha: state.bg.overlayAlpha
+            },
+            gradient: { ...state.gradient },
+            mainText: { ...state.mainText },
+            subText: { ...state.subText },
+            extraText: { ...state.extraText },
+            badge: { ...state.badge },
+            ribbon: { ...state.ribbon },
+            mainBgBox: { ...state.mainBgBox },
+            underline: { ...state.underline },
+            arrow: { ...state.arrow },
+            guides: { ...state.guides },
+            logos: state.logos.map(l => ({
+                x: l.x,
+                y: l.y,
+                scale: l.scale,
+                opacity: l.opacity,
+                enabled: l.enabled
+            })),
+            export: { ...state.export }
+        };
+    }
+
+    function applyConfigSnapshot(cfg) {
+        if (!cfg) return;
+        state.language = cfg.language ?? state.language;
+        Object.assign(state.bg, cfg.bg || {});
+        Object.assign(state.gradient, cfg.gradient || {});
+        Object.assign(state.mainText, cfg.mainText || {});
+        Object.assign(state.subText, cfg.subText || {});
+        Object.assign(state.extraText, cfg.extraText || {});
+        Object.assign(state.badge, cfg.badge || {});
+        Object.assign(state.ribbon, cfg.ribbon || {});
+        Object.assign(state.mainBgBox, cfg.mainBgBox || {});
+        Object.assign(state.underline, cfg.underline || {});
+        Object.assign(state.arrow, cfg.arrow || {});
+        Object.assign(state.guides, cfg.guides || {});
+        if (cfg.logos) {
+            cfg.logos.forEach((lcfg, i) => {
+                if (!state.logos[i]) return;
+                state.logos[i].x = lcfg.x;
+                state.logos[i].y = lcfg.y;
+                state.logos[i].scale = lcfg.scale;
+                state.logos[i].opacity = lcfg.opacity;
+                state.logos[i].enabled = lcfg.enabled;
+            });
+        }
+        Object.assign(state.export, cfg.export || {});
+        syncUIFromState();
+        drawAll();
+    }
+
+    function pushHistory() {
+        const snap = getConfigSnapshot();
+        const h = state.history;
+        h.stack = h.stack.slice(0, h.index + 1);
+        h.stack.push(snap);
+        h.index = h.stack.length - 1;
+        updateAutosaveStatus('변경 내용 저장됨');
+        saveToLocalStorage();
+    }
+
+    function undo() {
+        const h = state.history;
+        if (h.index <= 0) return;
+        h.index--;
+        applyConfigSnapshot(h.stack[h.index]);
+        updateAutosaveStatus('되돌리기 수행');
+    }
+
+    function redo() {
+        const h = state.history;
+        if (h.index >= h.stack.length - 1) return;
+        h.index++;
+        applyConfigSnapshot(h.stack[h.index]);
+        updateAutosaveStatus('다시하기 수행');
+    }
+
+    // ==========================
+    // LocalStorage (자동 저장/최근)
+    // ==========================
+    const LS_KEY_CURRENT = 'imageplus_current_project_v1';
+    const LS_KEY_RECENT = 'imageplus_recent_projects_v1';
+
+    function saveToLocalStorage() {
+        try {
+            const cfg = getConfigSnapshot();
+            localStorage.setItem(LS_KEY_CURRENT, JSON.stringify(cfg));
+
+            // 자동으로 최근 1개 업데이트는 하지 않고, 사용자가 버튼 누를 때만 recent에 저장
+        } catch (e) {
+            console.warn('localStorage save failed', e);
+        }
+    }
+
+    function loadFromLocalStorage() {
+        try {
+            const raw = localStorage.getItem(LS_KEY_CURRENT);
+            if (!raw) return;
+            const cfg = JSON.parse(raw);
+            applyConfigSnapshot(cfg);
+            updateAutosaveStatus('이전 작업 불러옴');
+        } catch (e) {
+            console.warn('localStorage load failed', e);
+        }
+    }
+
+    function updateAutosaveStatus(msg) {
+        const el = document.getElementById('autosave-status');
+        if (el) el.textContent = '자동 저장: ' + msg;
+    }
+
+    function refreshRecentProjectsUI() {
+        const wrap = document.getElementById('recent-projects');
+        wrap.innerHTML = '';
+        let list = [];
+        try {
+            const raw = localStorage.getItem(LS_KEY_RECENT);
+            if (raw) list = JSON.parse(raw);
+        } catch (e) {}
+
+        list.forEach((item, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'recent-project-btn';
+            const dateLabel = item.savedAt ? new Date(item.savedAt).toLocaleString() : '저장 시점';
+            btn.textContent = `${idx + 1}. ${item.name || '썸네일'} (${dateLabel})`;
+            btn.addEventListener('click', () => {
+                applyConfigSnapshot(item.config);
+                pushHistory();
+            });
+            wrap.appendChild(btn);
+        });
+        if (list.length === 0) {
+            const span = document.createElement('span');
+            span.className = 'project-info';
+            span.textContent = '최근 프로젝트가 없습니다.';
+            wrap.appendChild(span);
+        }
+    }
+
+    function saveCurrentToRecent() {
+        let list = [];
+        try {
+            const raw = localStorage.getItem(LS_KEY_RECENT);
+            if (raw) list = JSON.parse(raw);
+        } catch (e) {}
+
+        const name = prompt('프로젝트 이름을 입력하세요 (예: 수능 영단어 썸네일)', '');
+        const cfg = getConfigSnapshot();
+        list.unshift({ name: name || '썸네일', savedAt: new Date().toISOString(), config: cfg });
+        if (list.length > 3) list = list.slice(0, 3);
+        localStorage.setItem(LS_KEY_RECENT, JSON.stringify(list));
+        refreshRecentProjectsUI();
+    }
+
+    // ==========================
+    // UI 요소 참조
+    // ==========================
+    const bgFileInput = document.getElementById('image-upload');
+    const logoFileInput = document.getElementById('logo-upload');
+    const logoIndexSelect = document.getElementById('logo-index-select');
+
+    // 배경 슬라이더
+    const bgScaleInput = document.getElementById('bg-scale');
+    const bgBrightnessInput = document.getElementById('bg-brightness');
+    const bgContrastInput = document.getElementById('bg-contrast');
+    const bgBlurInput = document.getElementById('bg-blur');
+    const overlayEnabledInput = document.getElementById('overlay-enabled');
+    const overlayColorInput = document.getElementById('overlay-color');
+    const overlayAlphaInput = document.getElementById('overlay-alpha');
+
+    // 로고 관련
+    const logoEnabledInput = document.getElementById('logo-enabled');
+    const logoScaleInput = document.getElementById('logo-scale');
+    const logoOpacityInput = document.getElementById('logo-opacity');
+
+    // 텍스트 입력
+    const mainTextInput = document.getElementById('main-text-input');
+    const subTextInput = document.getElementById('sub-text-input');
+    const extraTextInput = document.getElementById('extra-text-input');
+
+    // 텍스트 옵션
+    const mainTextSizeInput = document.getElementById('main-text-size');
+    const mainTextFontSelect = document.getElementById('main-text-font');
+    const mainTextAlignSelect = document.getElementById('main-text-align');
+    const mainWrapInput = document.getElementById('main-wrap');
+    const mainLineHeightInput = document.getElementById('main-line-height');
+    const mainLetterSpacingInput = document.getElementById('main-letter-spacing');
+    const mainOutlineInput = document.getElementById('main-outline');
+    const mainShadowInput = document.getElementById('main-shadow');
+    const mainCustomColorEnabledInput = document.getElementById('main-custom-color-enabled');
+    const mainCustomColorInput = document.getElementById('main-custom-color');
+
+    const subTextSizeInput = document.getElementById('sub-text-size');
+    const subTextFontSelect = document.getElementById('sub-text-font');
+    const subTextAlignSelect = document.getElementById('sub-text-align');
+    const subOutlineInput = document.getElementById('sub-outline');
+    const subShadowInput = document.getElementById('sub-shadow');
+
+    const extraEnabledInput = document.getElementById('extra-enabled');
+    const extraTextSizeInput = document.getElementById('extra-text-size');
+    const extraTextFontSelect = document.getElementById('extra-text-font');
+    const extraTextAlignSelect = document.getElementById('extra-text-align');
+
+    // 배지/리본
+    const badgeEnabledInput = document.getElementById('badge-enabled');
+    const badgeCategorySelect = document.getElementById('badge-category');
+    const badgeTextInput = document.getElementById('badge-text-input');
+    const badgeBgColorInput = document.getElementById('badge-bg-color');
+    const badgeTextColorInput = document.getElementById('badge-text-color');
+
+    const ribbonEnabledInput = document.getElementById('ribbon-enabled');
+    const ribbonTextInput = document.getElementById('ribbon-text-input');
+    const ribbonColorInput = document.getElementById('ribbon-color');
+
+    // 하단 그라데이션 & 도형
+    const gradientEnabledInput = document.getElementById('gradient-enabled');
+    const gradientHeightInput = document.getElementById('gradient-height');
+    const gradientAlphaInput = document.getElementById('gradient-alpha');
+    const mainBgBoxEnabledInput = document.getElementById('main-bg-box-enabled');
+    const mainBgBoxColorInput = document.getElementById('main-bg-box-color');
+    const mainBgBoxAlphaInput = document.getElementById('main-bg-box-alpha');
+    const mainUnderlineEnabledInput = document.getElementById('main-underline-enabled');
+    const arrowEnabledInput = document.getElementById('arrow-enabled');
+
+    // 가이드
+    const gridEnabledInput = document.getElementById('grid-enabled');
+    const guidesEnabledInput = document.getElementById('guides-enabled');
+    const importantAreaEnabledInput = document.getElementById('important-area-enabled');
+    const snapEnabledInput = document.getElementById('snap-enabled');
+
+    // 레이아웃 템플릿
+    const layoutTemplateSelect = document.getElementById('layout-template-select');
+    const applyTemplateBtn = document.getElementById('apply-template-btn');
+
+    // 선택용 버튼
+    const selectMainTextBtn = document.getElementById('select-main-text');
+    const selectSubTextBtn = document.getElementById('select-sub-text');
+    const selectExtraTextBtn = document.getElementById('select-extra-text');
+    const selectLogo1Btn = document.getElementById('select-logo1');
+
+    // 프로젝트 관련
+    const saveCurrentToRecentBtn = document.getElementById('save-current-to-recent');
+    const resetAllBtn = document.getElementById('reset-all-btn');
+    const exportProjectBtn = document.getElementById('export-project-btn');
+    const importProjectFileInput = document.getElementById('import-project-file');
+
+    // 저장 관련
+    const savePngButton = document.getElementById('save-png-button');
+    const saveJpgButton = document.getElementById('save-jpg-button');
+    const fileSizeWarning = document.getElementById('file-size-warning');
+    const jpgQualityInput = document.getElementById('jpg-quality');
+
+    const langToggleBtn = document.getElementById('lang-toggle');
+    const undoBtn = document.getElementById('undo-btn');
+    const redoBtn = document.getElementById('redo-btn');
+
+    // ==========================
+    // 이미지 로드
+    // ==========================
+    bgFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const img = new Image();
+        img.onload = () => {
+            state.bg.image = img;
+            pushHistory();
+            drawAll();
+        };
+        img.src = URL.createObjectURL(file);
+    });
+
+    logoFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const index = parseInt(logoIndexSelect.value, 10);
+        const img = new Image();
+        img.onload = () => {
+            const logo = state.logos[index];
+            logo.image = img;
+            const maxDim = 300;
+            const aspect = img.width / img.height;
+            if (img.width > maxDim || img.height > maxDim) {
+                if (aspect > 1) {
+                    logo.baseWidth = maxDim;
+                    logo.baseHeight = maxDim / aspect;
+                } else {
+                    logo.baseHeight = maxDim;
+                    logo.baseWidth = maxDim * aspect;
+                }
+            } else {
+                logo.baseWidth = img.width;
+                logo.baseHeight = img.height;
+            }
+            logo.enabled = true;
+            syncUIFromState();
+            pushHistory();
+            drawAll();
+        };
+        img.src = URL.createObjectURL(file);
+    });
+
+    // ==========================
+    // UI → 상태 반영 이벤트
+    // ==========================
+    function addSimpleInputSync(input, handler, useHistory = true) {
+        if (!input) return;
+        input.addEventListener('input', () => {
+            handler(input);
+            if (useHistory) pushHistory();
+            drawAll();
+        });
+    }
+
+    // 배경
+    addSimpleInputSync(bgScaleInput, (el) => state.bg.scale = parseFloat(el.value));
+    addSimpleInputSync(bgBrightnessInput, (el) => state.bg.brightness = parseFloat(el.value));
+    addSimpleInputSync(bgContrastInput, (el) => state.bg.contrast = parseFloat(el.value));
+    addSimpleInputSync(bgBlurInput, (el) => state.bg.blur = parseFloat(el.value));
+    addSimpleInputSync(overlayEnabledInput, (el) => state.bg.overlayEnabled = el.checked);
+    addSimpleInputSync(overlayColorInput, (el) => state.bg.overlayColor = el.value);
+    addSimpleInputSync(overlayAlphaInput, (el) => state.bg.overlayAlpha = parseFloat(el.value));
+
+    document.querySelectorAll('[data-filter]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            state.bg.filter = btn.getAttribute('data-filter');
+            pushHistory();
+            drawAll();
+        });
+    });
+
+    document.querySelectorAll('[data-bg-move]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const [dx, dy] = btn.getAttribute('data-bg-move').split(',').map(Number);
+            state.bg.offsetX += dx;
+            state.bg.offsetY += dy;
+            pushHistory();
+            drawAll();
+        });
+    });
+
+    document.getElementById('bg-reset').addEventListener('click', () => {
+        state.bg.offsetX = 0;
+        state.bg.offsetY = 0;
+        state.bg.scale = 1.0;
+        bgScaleInput.value = '1.0';
+        pushHistory();
+        drawAll();
+    });
+
+    // 로고
+    function syncUIForLogoIndex() {
+        const index = parseInt(logoIndexSelect.value, 10);
+        const logo = state.logos[index];
+        logoEnabledInput.checked = logo.enabled;
+        logoScaleInput.value = logo.scale;
+        logoOpacityInput.value = logo.opacity;
+    }
+
+    logoIndexSelect.addEventListener('change', () => {
+        syncUIForLogoIndex();
+    });
+
+    addSimpleInputSync(logoEnabledInput, (el) => {
+        const idx = parseInt(logoIndexSelect.value, 10);
+        state.logos[idx].enabled = el.checked;
+    });
+    addSimpleInputSync(logoScaleInput, (el) => {
+        const idx = parseInt(logoIndexSelect.value, 10);
+        state.logos[idx].scale = parseFloat(el.value);
+    });
+    addSimpleInputSync(logoOpacityInput, (el) => {
+        const idx = parseInt(logoIndexSelect.value, 10);
+        state.logos[idx].opacity = parseFloat(el.value);
+    });
+
+    document.querySelectorAll('[data-logo-pos]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const idx = parseInt(logoIndexSelect.value, 10);
+            const logo = state.logos[idx];
+            const pos = btn.getAttribute('data-logo-pos');
+            const w = logo.baseWidth * logo.scale;
+            const h = logo.baseHeight * logo.scale;
+            const margin = 40;
+            if (pos === 'lt') {
+                logo.x = margin;
+                logo.y = margin;
+            } else if (pos === 'rt') {
+                logo.x = canvas.width - margin - w;
+                logo.y = margin;
+            } else if (pos === 'lb') {
+                logo.x = margin;
+                logo.y = canvas.height - margin - h;
+            } else if (pos === 'rb') {
+                logo.x = canvas.width - margin - w;
+                logo.y = canvas.height - margin - h;
+            }
+            pushHistory();
+            drawAll();
+        });
+    });
+
+    // 메인 텍스트
+    addSimpleInputSync(mainTextInput, (el) => state.mainText.text = el.value);
+    addSimpleInputSync(mainTextSizeInput, (el) => state.mainText.size = parseInt(el.value, 10));
+    addSimpleInputSync(mainTextFontSelect, (el) => state.mainText.font = el.value);
+    addSimpleInputSync(mainTextAlignSelect, (el) => state.mainText.align = el.value);
+    addSimpleInputSync(mainWrapInput, (el) => state.mainText.wrap = el.checked);
+    addSimpleInputSync(mainLineHeightInput, (el) => state.mainText.lineHeight = parseFloat(el.value));
+    addSimpleInputSync(mainLetterSpacingInput, (el) => state.mainText.letterSpacing = parseFloat(el.value));
+    addSimpleInputSync(mainOutlineInput, (el) => state.mainText.outlineScale = parseFloat(el.value));
+    addSimpleInputSync(mainShadowInput, (el) => state.mainText.shadowBlur = parseFloat(el.value));
+    addSimpleInputSync(mainCustomColorEnabledInput, (el) => state.mainText.customColorEnabled = el.checked);
+    addSimpleInputSync(mainCustomColorInput, (el) => state.mainText.customColor = el.value);
+
+    // 서브 텍스트
+    addSimpleInputSync(subTextInput, (el) => state.subText.text = el.value);
+    addSimpleInputSync(subTextSizeInput, (el) => state.subText.size = parseInt(el.value, 10));
+    addSimpleInputSync(subTextFontSelect, (el) => state.subText.font = el.value);
+    addSimpleInputSync(subTextAlignSelect, (el) => state.subText.align = el.value);
+    addSimpleInputSync(subOutlineInput, (el) => state.subText.outlineScale = parseFloat(el.value));
+    addSimpleInputSync(subShadowInput, (el) => state.subText.shadowBlur = parseFloat(el.value));
+
+    // 추가 텍스트
+    addSimpleInputSync(extraEnabledInput, (el) => state.extraText.enabled = el.checked);
+    addSimpleInputSync(extraTextInput, (el) => state.extraText.text = el.value);
+    addSimpleInputSync(extraTextSizeInput, (el) => state.extraText.size = parseInt(el.value, 10));
+    addSimpleInputSync(extraTextFontSelect, (el) => state.extraText.font = el.value);
+    addSimpleInputSync(extraTextAlignSelect, (el) => state.extraText.align = el.value);
+
+    // 배지/리본
+    addSimpleInputSync(badgeEnabledInput, (el) => state.badge.enabled = el.checked);
+    addSimpleInputSync(badgeCategorySelect, (el) => {
+        state.badge.category = el.value;
+        if (el.value && !badgeTextInput.value) {
+            badgeTextInput.value = el.value;
+            state.badge.text = el.value;
+        }
+    });
+    addSimpleInputSync(badgeTextInput, (el) => state.badge.text = el.value);
+    addSimpleInputSync(badgeBgColorInput, (el) => state.badge.bgColor = el.value);
+    addSimpleInputSync(badgeTextColorInput, (el) => state.badge.textColor = el.value);
+
+    addSimpleInputSync(ribbonEnabledInput, (el) => state.ribbon.enabled = el.checked);
+    addSimpleInputSync(ribbonTextInput, (el) => state.ribbon.text = el.value);
+    addSimpleInputSync(ribbonColorInput, (el) => state.ribbon.color = el.value);
+
+    // 그라데이션/도형
+    addSimpleInputSync(gradientEnabledInput, (el) => state.gradient.enabled = el.checked);
+    addSimpleInputSync(gradientHeightInput, (el) => state.gradient.height = parseInt(el.value, 10));
+    addSimpleInputSync(gradientAlphaInput, (el) => state.gradient.alpha = parseFloat(el.value));
+    addSimpleInputSync(mainBgBoxEnabledInput, (el) => state.mainBgBox.enabled = el.checked);
+    addSimpleInputSync(mainBgBoxColorInput, (el) => state.mainBgBox.color = el.value);
+    addSimpleInputSync(mainBgBoxAlphaInput, (el) => state.mainBgBox.alpha = parseFloat(el.value));
+    addSimpleInputSync(mainUnderlineEnabledInput, (el) => state.underline.mainEnabled = el.checked);
+    addSimpleInputSync(arrowEnabledInput, (el) => state.arrow.enabled = el.checked);
+
+    // 가이드
+    addSimpleInputSync(gridEnabledInput, (el) => state.guides.grid = el.checked);
+    addSimpleInputSync(guidesEnabledInput, (el) => state.guides.guides = el.checked);
+    addSimpleInputSync(importantAreaEnabledInput, (el) => state.guides.importantArea = el.checked);
+    addSimpleInputSync(snapEnabledInput, (el) => state.guides.snap = el.checked);
+
+    // 저장 설정
+    jpgQualityInput.addEventListener('input', () => {
+        state.export.jpgQuality = parseFloat(jpgQualityInput.value);
+        updateAutosaveStatus('JPG 품질 변경');
+        saveToLocalStorage();
+    });
+
+    document.querySelectorAll('input[name="export-res"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            if (radio.checked) {
+                state.export.resolution = parseInt(radio.value, 10);
+                updateAutosaveStatus('출력 해상도 변경');
+                saveToLocalStorage();
+            }
+        });
+    });
+
+    // 텍스트 스타일 프리셋
+    document.querySelectorAll('[data-style-preset]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const preset = btn.getAttribute('data-style-preset');
+            if (preset === 'white-outline') {
+                state.mainText.customColorEnabled = true;
+                state.mainText.customColor = '#ffffff';
+                state.mainText.outlineScale = 0.06;
+                state.mainText.shadowBlur = 14;
+            } else if (preset === 'yellow-black') {
+                state.mainText.customColorEnabled = true;
+                state.mainText.customColor = '#ffdb4d';
+                state.mainText.outlineScale = 0.04;
+                state.mainText.shadowBlur = 20;
+            } else if (preset === 'red-white') {
+                state.mainText.customColorEnabled = true;
+                state.mainText.customColor = '#ff3333';
+                state.mainText.outlineScale = 0.06;
+                state.mainText.shadowBlur = 18;
+            }
+            syncUIFromState();
+            pushHistory();
+            drawAll();
+        });
+    });
+
+    // 아이디어 버튼
+    document.getElementById('idea-btn').addEventListener('click', () => {
+        const pool = ideaPool[state.language] || ideaPool.ko;
+        const text = pool[Math.floor(Math.random() * pool.length)];
+        mainTextInput.value = text;
+        state.mainText.text = text;
+        pushHistory();
+        drawAll();
+    });
+
+    // 레이아웃 템플릿
+    applyTemplateBtn.addEventListener('click', () => {
+        const t = layoutTemplateSelect.value;
+        if (!t) return;
+        const margin = 60;
+        if (t === 'face-left') {
+            state.mainText.x = canvas.width * 0.55;
+            state.mainText.y = canvas.height - 120;
+            state.mainText.align = 'left';
+            state.subText.x = canvas.width - margin;
+            state.subText.y = 130;
+            state.badge.x = margin;
+            state.badge.y = margin + 20;
+        } else if (t === 'face-right') {
+            state.mainText.x = margin;
+            state.mainText.y = canvas.height - 120;
+            state.mainText.align = 'left';
+            state.subText.x = canvas.width * 0.45;
+            state.subText.y = 130;
+            state.badge.x = margin;
+            state.badge.y = margin + 20;
+        } else if (t === 'center-face') {
+            state.mainText.x = canvas.width / 2;
+            state.mainText.y = canvas.height - 140;
+            state.mainText.align = 'center';
+            state.subText.x = canvas.width / 2;
+            state.subText.y = 150;
+            state.badge.x = margin;
+            state.badge.y = margin + 20;
+        } else if (t === 'no-face-text-only') {
+            state.mainText.x = margin;
+            state.mainText.y = canvas.height - 160;
+            state.mainText.align = 'left';
+            state.subText.x = canvas.width - margin;
+            state.subText.y = 160;
+            state.badge.x = margin;
+            state.badge.y = margin + 20;
+        }
+        syncUIFromState();
+        pushHistory();
+        drawAll();
+    });
+
+    // 요소 선택 버튼
+    selectMainTextBtn.addEventListener('click', () => {
+        state.activeElement = { type: 'mainText' };
+        drawAll();
+    });
+    selectSubTextBtn.addEventListener('click', () => {
+        state.activeElement = { type: 'subText' };
+        drawAll();
+    });
+    selectExtraTextBtn.addEventListener('click', () => {
+        state.activeElement = { type: 'extraText' };
+        drawAll();
+    });
+    selectLogo1Btn.addEventListener('click', () => {
+        state.activeElement = { type: 'logo', index: 0 };
+        drawAll();
+    });
+
+    // 프로젝트 관련
+    saveCurrentToRecentBtn.addEventListener('click', () => {
+        saveCurrentToRecent();
+    });
+
+    resetAllBtn.addEventListener('click', () => {
+        if (!confirm('모든 설정을 초기화할까요? (이미지 자체는 유지됩니다)')) return;
+        const keepBg = state.bg.image;
+        const logosImg = state.logos.map(l => l.image);
+        Object.assign(state, JSON.parse(JSON.stringify({
+            language: 'ko',
+            bg: {
+                image: null,
+                brightness: 1.0,
+                contrast: 1.0,
+                blur: 0,
+                scale: 1.0,
+                offsetX: 0,
+                offsetY: 0,
+                filter: 'none',
+                overlayEnabled: false,
+                overlayColor: '#000000',
+                overlayAlpha: 0.4
+            },
+            gradient: { enabled: true, height: 260, alpha: 0.75 },
+            mainText: {
+                enabled: true,
+                text: '',
+                x: 60,
+                y: 1004,
+                size: 180,
+                font: 'SBAggroB',
+                align: 'left',
+                wrap: true,
+                lineHeight: 1.1,
+                letterSpacing: 0,
+                outlineScale: 0.04,
+                shadowBlur: 18,
+                customColorEnabled: false,
+                customColor: '#ffffff'
+            },
+            subText: {
+                enabled: true,
+                text: '',
+                x: canvas.width - 60,
+                y: 120,
+                size: 90,
+                font: 'RiaSans-ExtraBold',
+                align: 'right',
+                outlineScale: 0.03,
+                shadowBlur: 12
+            },
+            extraText: {
+                enabled: false,
+                text: '',
+                x: canvas.width / 2,
+                y: canvas.height / 2,
+                size: 70,
+                font: 'LINESeedKR-Bd',
+                align: 'center'
+            },
+            badge: {
+                enabled: true,
+                text: '',
+                category: '',
+                x: 60,
+                y: 70,
+                bgColor: '#ff4757',
+                textColor: '#ffffff'
+            },
+            ribbon: {
+                enabled: false,
+                text: '',
+                color: '#ffa502'
+            },
+            mainBgBox: {
+                enabled: false,
+                color: '#000000',
+                alpha: 0.4
+            },
+            underline: { mainEnabled: false },
+            arrow: { enabled: false },
+            guides: {
+                grid: false,
+                guides: false,
+                importantArea: false,
+                snap: true
+            },
+            logos: [
+                { image: null, x: 40, y: 40, baseWidth: 0, baseHeight: 0, scale: 1.0, opacity: 1.0, enabled: false },
+                { image: null, x: 40, y: 40, baseWidth: 0, baseHeight: 0, scale: 1.0, opacity: 1.0, enabled: false },
+                { image: null, x: 40, y: 40, baseWidth: 0, baseHeight: 0, scale: 1.0, opacity: 1.0, enabled: false }
+            ],
+            activeElement: null,
+            dragging: null,
+            dragOffset: { x: 0, y: 0 },
+            export: {
+                resolution: 1080,
+                jpgQuality: 0.8
+            },
+            history: { stack: [], index: -1 }
+        })));
+
+        // 이미지만 복원
+        state.bg.image = keepBg;
+        logosImg.forEach((img, i) => {
+            if (img) state.logos[i].image = img;
+        });
+
+        // 서브텍스트 날짜 다시 세팅
+        state.subText.text = `${today.getFullYear().toString().slice(2)}.${(today.getMonth() + 1).toString().padStart(2, '0')}.${today.getDate().toString().padStart(2, '0')}`;
+
+        syncUIFromState();
+        pushHistory();
+        drawAll();
+    });
+
+    exportProjectBtn.addEventListener('click', () => {
+        const cfg = getConfigSnapshot();
+        const blob = new Blob([JSON.stringify(cfg, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        const now = new Date();
+        const timeString = `${now.getFullYear().toString().slice(2)}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}`;
+        a.download = `imageplus_project_${timeString}.json`;
+        a.click();
+    });
+
+    importProjectFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            try {
+                const cfg = JSON.parse(ev.target.result);
+                applyConfigSnapshot(cfg);
+                pushHistory();
+                drawAll();
+                alert('프로젝트 설정을 불러왔습니다.');
+            } catch (err) {
+                alert('JSON 형식이 올바르지 않습니다.');
+            }
+        };
+        reader.readAsText(file, 'utf-8');
+    });
+
+    // 언어 토글
+    langToggleBtn.addEventListener('click', () => {
+        state.language = state.language === 'ko' ? 'en' : 'ko';
+        langToggleBtn.textContent = state.language === 'ko' ? 'KR' : 'EN';
+        pushHistory();
+        drawAll();
+    });
+
+    // Undo/Redo 버튼
+    undoBtn.addEventListener('click', () => undo());
+    redoBtn.addEventListener('click', () => redo());
+
+    // ==========================
+    // 드래그 & 히트 테스트
+    // ==========================
+    function getPointerPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+
+        let clientX = e.clientX;
+        let clientY = e.clientY;
+
+        if (e.touches && e.touches.length > 0) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        }
+
+        return {
+            x: (clientX - rect.left) * scaleX,
+            y: (clientY - rect.top) * scaleY
+        };
+    }
+
+    function hitTestLogo(pos) {
+        for (let i = state.logos.length - 1; i >= 0; i--) {
+            const logo = state.logos[i];
+            if (!logo.enabled || !logo.image) continue;
+            const w = logo.baseWidth * logo.scale;
+            const h = logo.baseHeight * logo.scale;
+            if (pos.x >= logo.x && pos.x <= logo.x + w &&
+                pos.y >= logo.y && pos.y <= logo.y + h) {
+                return { type: 'logo', index: i };
+            }
+        }
+        return null;
+    }
+
+    function measureTextWidthForLayer(layer, text) {
+        ctx.font = `bold ${layer.size}px ${layer.font}`;
+        return ctx.measureText(text).width;
+    }
+
+    function hitTestMainText(pos) {
+        if (!state.mainText.text) return null;
+        const size = state.mainText.size;
+        const x = state.mainText.x;
+        const y = state.mainText.y;
+        const w = canvas.width;
+        const h = size * 1.4;
+        if (pos.y <= y && pos.y >= y - h &&
+            pos.x >= x - 50 && pos.x <= x + w) {
+            return { type: 'mainText' };
+        }
+        return null;
+    }
+
+    function hitTestSubText(pos) {
+        if (!state.subText.text) return null;
+        const size = state.subText.size;
+        const x = state.subText.x;
+        const y = state.subText.y;
+        const h = size * 1.4;
+        if (pos.y <= y && pos.y >= y - h &&
+            pos.x >= x - 400 && pos.x <= x + 400) {
+            return { type: 'subText' };
+        }
+        return null;
+    }
+
+    function hitTestExtraText(pos) {
+        if (!state.extraText.enabled || !state.extraText.text) return null;
+        const size = state.extraText.size;
+        const x = state.extraText.x;
+        const y = state.extraText.y;
+        const h = size * 1.4;
+        if (pos.y <= y && pos.y >= y - h &&
+            pos.x >= x - 400 && pos.x <= x + 400) {
+            return { type: 'extraText' };
+        }
+        return null;
+    }
+
+    function handlePointerStart(e) {
+        const pos = getPointerPos(e);
+
+        // 로고 우선
+        let hit = hitTestLogo(pos);
+        if (!hit) hit = hitTestMainText(pos);
+        if (!hit) hit = hitTestSubText(pos);
+        if (!hit) hit = hitTestExtraText(pos);
+
+        if (hit) {
+            state.dragging = hit;
+            state.activeElement = hit;
+
+            if (hit.type === 'logo') {
+                const logo = state.logos[hit.index];
+                state.dragOffset.x = pos.x - logo.x;
+                state.dragOffset.y = pos.y - logo.y;
+            } else if (hit.type === 'mainText') {
+                state.dragOffset.x = pos.x - state.mainText.x;
+                state.dragOffset.y = pos.y - state.mainText.y;
+            } else if (hit.type === 'subText') {
+                state.dragOffset.x = pos.x - state.subText.x;
+                state.dragOffset.y = pos.y - state.subText.y;
+            } else if (hit.type === 'extraText') {
+                state.dragOffset.x = pos.x - state.extraText.x;
+                state.dragOffset.y = pos.y - state.extraText.y;
+            }
+
+            drawAll();
+        }
+    }
+
+    function handlePointerMove(e) {
+        if (!state.dragging) return;
+        e.preventDefault();
+        const pos = getPointerPos(e);
+
+        const snapDist = 20;
+        const margin = 60;
+
+        if (state.dragging.type === 'logo') {
+            const logo = state.logos[state.dragging.index];
+            logo.x = pos.x - state.dragOffset.x;
+            logo.y = pos.y - state.dragOffset.y;
+            if (state.guides.snap) {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const w = logo.baseWidth * logo.scale;
+                const h = logo.baseHeight * logo.scale;
+
+                const cx = logo.x + w / 2;
+                const cy = logo.y + h / 2;
+
+                if (Math.abs(cx - centerX) < snapDist) {
+                    logo.x = centerX - w / 2;
+                }
+                if (Math.abs(cy - centerY) < snapDist) {
+                    logo.y = centerY - h / 2;
+                }
+            }
+        } else if (state.dragging.type === 'mainText') {
+            state.mainText.x = pos.x - state.dragOffset.x;
+            state.mainText.y = pos.y - state.dragOffset.y;
+
+            if (state.guides.snap) {
+                const centerX = canvas.width / 2;
+                const bottomY = canvas.height - margin;
+                const size = state.mainText.size;
+
+                if (Math.abs(state.mainText.y - bottomY) < snapDist) {
+                    state.mainText.y = bottomY;
+                }
+                const textWidth = measureTextWidthForLayer(state.mainText, state.mainText.text.replace(/\(.\)/g, ''));
+                const centerOfText = state.mainText.x + textWidth / 2;
+                if (Math.abs(centerOfText - centerX) < snapDist) {
+                    state.mainText.x = centerX - textWidth / 2;
+                }
+            }
+        } else if (state.dragging.type === 'subText') {
+            state.subText.x = pos.x - state.dragOffset.x;
+            state.subText.y = pos.y - state.dragOffset.y;
+        } else if (state.dragging.type === 'extraText') {
+            state.extraText.x = pos.x - state.dragOffset.x;
+            state.extraText.y = pos.y - state.dragOffset.y;
+
+            if (state.guides.snap) {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                if (Math.abs(state.extraText.x - centerX) < snapDist) {
+                    state.extraText.x = centerX;
+                }
+                if (Math.abs(state.extraText.y - centerY) < snapDist) {
+                    state.extraText.y = centerY;
+                }
+            }
+        }
+
+        drawAll();
+    }
+
+    function handlePointerEnd() {
+        if (state.dragging) {
+            pushHistory();
+        }
+        state.dragging = null;
+    }
+
+    canvas.addEventListener('mousedown', handlePointerStart);
+    canvas.addEventListener('mousemove', handlePointerMove);
+    window.addEventListener('mouseup', handlePointerEnd);
+
+    canvas.addEventListener('touchstart', handlePointerStart, { passive: false });
+    canvas.addEventListener('touchmove', handlePointerMove, { passive: false });
+    window.addEventListener('touchend', handlePointerEnd);
+
+    // ==========================
+    // 키보드 단축키
+    // ==========================
+    window.addEventListener('keydown', (e) => {
+        // Undo/Redo
+        if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
+            e.preventDefault();
+            undo();
+            return;
+        }
+        if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'z') {
+            e.preventDefault();
+            redo();
+            return;
+        }
+
+        // 방향키 이동
+        if (!state.activeElement) return;
+        let moved = false;
+        const step = e.shiftKey ? 10 : 3;
+
+        const target = state.activeElement;
+        let obj = null;
+        if (target.type === 'mainText') obj = state.mainText;
+        else if (target.type === 'subText') obj = state.subText;
+        else if (target.type === 'extraText') obj = state.extraText;
+        else if (target.type === 'logo') obj = state.logos[target.index];
+
+        if (!obj) return;
+
+        if (e.key === 'ArrowLeft') {
+            obj.x -= step; moved = true;
+        } else if (e.key === 'ArrowRight') {
+            obj.x += step; moved = true;
+        } else if (e.key === 'ArrowUp') {
+            obj.y -= step; moved = true;
+        } else if (e.key === 'ArrowDown') {
+            obj.y += step; moved = true;
+        }
+
+        if (moved) {
+            e.preventDefault();
+            drawAll();
+            pushHistory();
+        }
+    });
+
+    // ==========================
+    // 그리기 로직
+    // ==========================
+    function applyBgFilter() {
+        let filter = `brightness(${state.bg.brightness}) contrast(${state.bg.contrast}) blur(${state.bg.blur}px)`;
+        if (state.bg.filter === 'bw') {
+            filter += ' grayscale(1)';
+        } else if (state.bg.filter === 'warm') {
+            filter += ' sepia(0.2) saturate(1.1)';
+        } else if (state.bg.filter === 'cool') {
+            filter += ' hue-rotate(180deg) saturate(0.9)';
+        }
+        ctx.filter = filter;
+    }
+
+    function drawBackground() {
+        ctx.save();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        if (state.bg.image) {
+            applyBgFilter();
+            const img = state.bg.image;
+            const bw = img.width * state.bg.scale;
+            const bh = img.height * state.bg.scale;
+            const x = (canvas.width - bw) / 2 + state.bg.offsetX;
+            const y = (canvas.height - bh) / 2 + state.bg.offsetY;
+            ctx.drawImage(img, x, y, bw, bh);
+            ctx.filter = 'none';
+        } else {
+            ctx.fillStyle = '#333';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.font = 'bold 100px sans-serif';
+            ctx.fillStyle = '#555';
+            ctx.textAlign = 'center';
+            ctx.fillText('이미지를 추가하세요', canvas.width / 2, canvas.height / 2);
+        }
+
+        if (state.bg.overlayEnabled) {
+            ctx.fillStyle = hexToRgba(state.bg.overlayColor, state.bg.overlayAlpha);
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        ctx.restore();
+    }
+
+    function drawGradient() {
+        if (!state.gradient.enabled) return;
+        const h = state.gradient.height;
+        const alpha = state.gradient.alpha;
+        const yStart = canvas.height - h;
+
+        const grd = ctx.createLinearGradient(0, yStart, 0, canvas.height);
+        grd.addColorStop(0, `rgba(0,0,0,0)`);
+        grd.addColorStop(1, `rgba(0,0,0,${alpha})`);
+        ctx.fillStyle = grd;
+        ctx.fillRect(0, yStart, canvas.width, h);
+    }
+
+    function drawGuides() {
+        const margin = 60;
+        if (state.guides.grid) {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+            ctx.lineWidth = 1;
+
+            // 3x3
+            const v1 = canvas.width / 3;
+            const v2 = (canvas.width / 3) * 2;
+            const h1 = canvas.height / 3;
+            const h2 = (canvas.height / 3) * 2;
+
+            ctx.beginPath();
+            ctx.moveTo(v1, 0); ctx.lineTo(v1, canvas.height);
+            ctx.moveTo(v2, 0); ctx.lineTo(v2, canvas.height);
+            ctx.moveTo(0, h1); ctx.lineTo(canvas.width, h1);
+            ctx.moveTo(0, h2); ctx.lineTo(canvas.width, h2);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        if (state.guides.guides) {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(0,255,163,0.35)';
+            ctx.lineWidth = 1;
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            ctx.beginPath();
+            ctx.moveTo(centerX, 0); ctx.lineTo(centerX, canvas.height);
+            ctx.moveTo(0, centerY); ctx.lineTo(canvas.width, centerY);
+            ctx.stroke();
+
+            // 여백
+            ctx.setLineDash([8, 6]);
+            ctx.beginPath();
+            ctx.rect(60, 60, canvas.width - 120, canvas.height - 120);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.restore();
+        }
+
+        if (state.guides.importantArea) {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255,215,0,0.6)';
+            ctx.lineWidth = 2;
+            const w = canvas.width * 0.35;
+            const h = canvas.height * 0.6;
+            const x = (canvas.width - w) / 2;
+            const y = (canvas.height - h) / 2;
+            ctx.strokeRect(x, y, w, h);
+            ctx.restore();
+        }
+    }
+
+    function hexToRgba(hex, alpha) {
+        const c = hex.replace('#', '');
+        const bigint = parseInt(c, 16);
+        const r = (bigint >> 16) & 255;
+        const g = (bigint >> 8) & 255;
+        const b = bigint & 255;
+        return `rgba(${r},${g},${b},${alpha})`;
+    }
+
+    function parseColorSegments(text) {
+        // (r)xxx(r) 등을 세그먼트로 파싱
+        const regex = /(\(r\).*?\(r\)|\(g\).*?\(g\)|\(b\).*?\(b\)|\(y\).*?\(y\)|\(k\).*?\(k\))/;
+        const result = [];
+        let remaining = text;
+        while (remaining.length > 0) {
+            const m = remaining.match(regex);
+            if (!m) {
+                result.push({ text: remaining, color: null });
+                break;
+            }
+            const idx = m.index;
+            if (idx > 0) {
+                result.push({ text: remaining.slice(0, idx), color: null });
+            }
+            const token = m[0];
+            const inner = token.slice(3, -3);
+            let color = '#ffffff';
+            if (token.startsWith('(r)')) color = '#ff0000';
+            else if (token.startsWith('(g)')) color = '#00ffa3';
+            else if (token.startsWith('(b)')) color = '#153cff';
+            else if (token.startsWith('(y)')) color = '#ffdb4d';
+            else if (token.startsWith('(k)')) color = '#111111';
+
+            result.push({ text: inner, color });
+            remaining = remaining.slice(idx + token.length);
+        }
+        return result;
+    }
+
+    function drawTextLayer(layer, options = {}) {
+        if (!layer.enabled || !layer.text) return;
+
+        const {
+            isMain = false,
+            customColorEnabled = false,
+            customColor = '#ffffff',
+            outlineScale = 0.04,
+            shadowBlur = 12,
+            wrap = false,
+            lineHeight = 1.1,
+            letterSpacing = 0
+        } = options;
+
+        ctx.save();
+
+        const fontFamily = layer.font || 'sans-serif';
+        ctx.font = `bold ${layer.size}px ${fontFamily}`;
+        ctx.textBaseline = 'alphabetic';
+
+        let segments = parseColorSegments(layer.text);
+
+        // wrap 처리
+        const maxWidth = wrap ? canvas.width * 0.9 : null;
+        const lines = [];
+        if (wrap && maxWidth) {
+            let currentLine = [];
+            let currentWidth = 0;
+            segments.forEach(seg => {
+                const words = seg.text.split(/(\s+)/);
+                words.forEach(w => {
+                    if (!w) return;
+                    const segClone = { text: w, color: seg.color };
+                    const width = ctx.measureText(segClone.text).width;
+                    if (currentWidth + width > maxWidth && currentLine.length > 0) {
+                        lines.push(currentLine);
+                        currentLine = [segClone];
+                        currentWidth = width;
+                    } else {
+                        currentLine.push(segClone);
+                        currentWidth += width;
+                    }
+                });
+            });
+            if (currentLine.length > 0) lines.push(currentLine);
+        } else {
+            lines.push(segments);
+        }
+
+        let x = layer.x;
+        let y = layer.y;
+
+        lines.forEach((lineSegs, lineIndex) => {
+            // line width 계산
+            let lineWidth = 0;
+            lineSegs.forEach(seg => {
+                lineWidth += ctx.measureText(seg.text).width;
+            });
+
+            let drawX = x;
+            if (layer.align === 'center') {
+                drawX = x - lineWidth / 2;
+            } else if (layer.align === 'right') {
+                drawX = x - lineWidth;
+            }
+
+            // 메인텍스트 배경 박스용 좌표 저장
+            if (isMain && lineIndex === lines.length - 1) {
+                layer._lastLineWidth = lineWidth;
+                layer._lastLineX = drawX;
+                layer._lastLineY = y;
+            }
+
+            // 그림자
+            ctx.shadowColor = 'rgba(0,0,0,0.85)';
+            ctx.shadowBlur = shadowBlur;
+
+            // 한 글자씩 렌더링 (letterSpacing용)
+            lineSegs.forEach(seg => {
+                const color = customColorEnabled ? customColor : (seg.color || '#ffffff');
+                ctx.fillStyle = color;
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = layer.size * outlineScale;
+
+                const text = seg.text;
+                for (let i = 0; i < text.length; i++) {
+                    const ch = text[i];
+                    ctx.strokeText(ch, drawX, y);
+                    ctx.fillText(ch, drawX, y);
+                    const cw = ctx.measureText(ch).width + letterSpacing;
+                    drawX += cw;
+                }
+            });
+
+            y += layer.size * lineHeight;
+        });
+
+        ctx.restore();
+    }
+
+    function drawMainBgBox() {
+        if (!state.mainBgBox.enabled || !state.mainText.text || typeof state.mainText._lastLineWidth === 'undefined') return;
+
+        const paddingX = 20;
+        const paddingY = 20;
+        const x = state.mainText._lastLineX - paddingX;
+        const y = state.mainText._lastLineY - state.mainText.size - paddingY / 2;
+        const w = state.mainText._lastLineWidth + paddingX * 2;
+        const h = state.mainText.size + paddingY;
+
+        ctx.save();
+        ctx.fillStyle = hexToRgba(state.mainBgBox.color, state.mainBgBox.alpha);
+        ctx.fillRect(x, y, w, h);
+        ctx.restore();
+    }
+
+    function drawUnderlineForMain() {
+        if (!state.underline.mainEnabled || !state.mainText.text || typeof state.mainText._lastLineWidth === 'undefined') return;
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+        ctx.lineWidth = 6;
+        const padding = 10;
+        const x1 = state.mainText._lastLineX;
+        const x2 = state.mainText._lastLineX + state.mainText._lastLineWidth;
+        const y = state.mainText._lastLineY + padding;
+        ctx.beginPath();
+        ctx.moveTo(x1, y);
+        ctx.lineTo(x2, y);
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    function drawArrow() {
+        if (!state.arrow.enabled) return;
+        ctx.save();
+        ctx.fillStyle = '#ff4757';
+        ctx.strokeStyle = '#ff4757';
+        ctx.lineWidth = 4;
+
+        const startX = canvas.width * 0.7;
+        const startY = canvas.height * 0.15;
+        const endX = canvas.width * 0.55;
+        const endY = canvas.height * 0.3;
+
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+
+        const angle = Math.atan2(endY - startY, endX - startX);
+        const headLen = 30;
+        ctx.beginPath();
+        ctx.moveTo(endX, endY);
+        ctx.lineTo(endX - headLen * Math.cos(angle - Math.PI / 6), endY - headLen * Math.sin(angle - Math.PI / 6));
+        ctx.lineTo(endX - headLen * Math.cos(angle + Math.PI / 6), endY - headLen * Math.sin(angle + Math.PI / 6));
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.restore();
+    }
+
+    function drawLogos() {
+        state.logos.forEach((logo, idx) => {
+            if (!logo.enabled || !logo.image) return;
+            const w = logo.baseWidth * logo.scale;
+            const h = logo.baseHeight * logo.scale;
+            ctx.save();
+            ctx.globalAlpha = logo.opacity;
+            ctx.drawImage(logo.image, logo.x, logo.y, w, h);
+
+            if (state.activeElement && state.activeElement.type === 'logo' && state.activeElement.index === idx) {
+                ctx.strokeStyle = '#00ffa3';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(logo.x, logo.y, w, h);
+            }
+            ctx.restore();
+        });
+    }
+
+    function drawBadge() {
+        if (!state.badge.enabled) return;
+        const text = state.badge.text || state.badge.category;
+        if (!text) return;
+        ctx.save();
+        ctx.font = 'bold 42px RiaSans-ExtraBold';
+        const padX = 26;
+        const padY = 14;
+        const textWidth = ctx.measureText(text).width;
+        const x = state.badge.x;
+        const y = state.badge.y;
+
+        const w = textWidth + padX * 2;
+        const h = 52 + padY;
+        const r = 26;
+
+        // 둥근 사각형
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+
+        ctx.fillStyle = state.badge.bgColor;
+        ctx.fill();
+        ctx.fillStyle = state.badge.textColor;
+        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'left';
+        ctx.fillText(text, x + padX, y + h / 2 + 4);
+        ctx.restore();
+    }
+
+    function drawRibbon() {
+        if (!state.ribbon.enabled || !state.ribbon.text) return;
+        ctx.save();
+        const text = state.ribbon.text;
+        const fontSize = 42;
+        ctx.font = `bold ${fontSize}px RiaSans-ExtraBold`;
+        const textWidth = ctx.measureText(text).width;
+        const width = textWidth + 40;
+        const height = 70;
+        const x = canvas.width - width;
+        const y = 0;
+
+        // 리본
+        ctx.fillStyle = state.ribbon.color;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.lineTo(canvas.width, y + height);
+        ctx.lineTo(x + width * 0.2, y + height);
+        ctx.lineTo(x, y + height * 0.6);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, x + width * 0.6, y + height / 2 + 4);
+        ctx.restore();
+    }
+
+    function drawActiveOutline() {
+        if (!state.activeElement) return;
+        ctx.save();
+        ctx.strokeStyle = 'rgba(0,255,163,0.8)';
+        ctx.lineWidth = 3;
+
+        if (state.activeElement.type === 'mainText' && state.mainText.text) {
+            const size = state.mainText.size;
+            const x = state.mainText.x - 20;
+            const y = state.mainText.y - size * 1.2;
+            const w = canvas.width * 0.8;
+            const h = size * 1.6;
+            ctx.strokeRect(x, y, w, h);
+        } else if (state.activeElement.type === 'subText' && state.subText.text) {
+            const size = state.subText.size;
+            const x = state.subText.x - 200;
+            const y = state.subText.y - size * 1.2;
+            const w = 400;
+            const h = size * 1.6;
+            ctx.strokeRect(x, y, w, h);
+        } else if (state.activeElement.type === 'extraText' && state.extraText.text) {
+            const size = state.extraText.size;
+            const x = state.extraText.x - 200;
+            const y = state.extraText.y - size * 1.2;
+            const w = 400;
+            const h = size * 1.6;
+            ctx.strokeRect(x, y, w, h);
+        }
+
+        ctx.restore();
+    }
+
+    function drawAll() {
+        drawBackground();
+        drawGradient();
+        drawGuides();
+        drawLogos();
+
+        // 메인 텍스트 배경박스는 텍스트보다 앞에 그리면 안 되므로
+        // 일단 텍스트를 그리면서 위치 계산 후 다시 호출
+        // 순서: 메인 배경 박스 -> 메인 텍스트 -> 서브/추가 -> 배지/리본/화살표 등
+
+        // 먼저 텍스트 위치 계산을 위해 텍스트부터 그렸다가, 배경 박스를 뒤에서 다시 그려도 되지만
+        // 간단히: 메인 텍스트를 먼저 그리고 나서 그 위에 박스를 얹지 않게끔
+        // 아래 순서처럼: 박스 → 텍스트 순서로 호출하되,
+        // 박스 그리기에서 사용하는 좌표는 이전 drawTextLayer에서 설정된 내부값을 사용.
+
+        // 1) 메인 텍스트를 일단 그려서 내부 좌표정보 업데이트
+        drawTextLayer(state.mainText, {
+            isMain: true,
+            customColorEnabled: state.mainText.customColorEnabled,
+            customColor: state.mainText.customColor,
+            outlineScale: state.mainText.outlineScale,
+            shadowBlur: state.mainText.shadowBlur,
+            wrap: state.mainText.wrap,
+            lineHeight: state.mainText.lineHeight,
+            letterSpacing: state.mainText.letterSpacing
+        });
+
+        // 2) 메인 텍스트 배경 박스 & 밑줄
+        drawMainBgBox();
+        drawUnderlineForMain();
+
+        // 3) 다시 한 번 메인 텍스트 위에 얹기 (박스 위에 글자)
+        drawTextLayer(state.mainText, {
+            isMain: true,
+            customColorEnabled: state.mainText.customColorEnabled,
+            customColor: state.mainText.customColor,
+            outlineScale: state.mainText.outlineScale,
+            shadowBlur: state.mainText.shadowBlur,
+            wrap: state.mainText.wrap,
+            lineHeight: state.mainText.lineHeight,
+            letterSpacing: state.mainText.letterSpacing
+        });
+
+        // 서브/추가 텍스트
+        drawTextLayer(state.subText, {
+            isMain: false,
+            customColorEnabled: false,
+            outlineScale: state.subText.outlineScale,
+            shadowBlur: state.subText.shadowBlur,
+            wrap: false,
+            lineHeight: 1.0,
+            letterSpacing: 0
+        });
+
+        drawTextLayer(state.extraText, {
+            isMain: false,
+            customColorEnabled: false,
+            outlineScale: 0.03,
+            shadowBlur: 14,
+            wrap: false,
+            lineHeight: 1.0,
+            letterSpacing: 0
+        });
+
+        // 배지/리본/화살표
+        drawBadge();
+        drawRibbon();
+        drawArrow();
+
+        // 활성 요소 표시
+        drawActiveOutline();
+
+        // 미리보기
+        drawPreview();
+    }
+
+    function drawPreview() {
+        pctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+        pctx.drawImage(canvas, 0, 0, previewCanvas.width, previewCanvas.height);
+    }
+
+    // ==========================
+    // UI 상태와 동기화
+    // ==========================
+    function syncUIFromState() {
+        // 배경
+        bgScaleInput.value = state.bg.scale;
+        bgBrightnessInput.value = state.bg.brightness;
+        bgContrastInput.value = state.bg.contrast;
+        bgBlurInput.value = state.bg.blur;
+        overlayEnabledInput.checked = state.bg.overlayEnabled;
+        overlayColorInput.value = state.bg.overlayColor;
+        overlayAlphaInput.value = state.bg.overlayAlpha;
+
+        // 로고
+        syncUIForLogoIndex();
+
+        // 텍스트
+        mainTextInput.value = state.mainText.text;
+        mainTextSizeInput.value = state.mainText.size;
+        mainTextFontSelect.value = state.mainText.font;
+        mainTextAlignSelect.value = state.mainText.align;
+        mainWrapInput.checked = state.mainText.wrap;
+        mainLineHeightInput.value = state.mainText.lineHeight;
+        mainLetterSpacingInput.value = state.mainText.letterSpacing;
+        mainOutlineInput.value = state.mainText.outlineScale;
+        mainShadowInput.value = state.mainText.shadowBlur;
+        mainCustomColorEnabledInput.checked = state.mainText.customColorEnabled;
+        mainCustomColorInput.value = state.mainText.customColor;
+
+        subTextInput.value = state.subText.text;
+        subTextSizeInput.value = state.subText.size;
+        subTextFontSelect.value = state.subText.font;
+        subTextAlignSelect.value = state.subText.align;
+        subOutlineInput.value = state.subText.outlineScale;
+        subShadowInput.value = state.subText.shadowBlur;
+
+        extraEnabledInput.checked = state.extraText.enabled;
+        extraTextInput.value = state.extraText.text;
+        extraTextSizeInput.value = state.extraText.size;
+        extraTextFontSelect.value = state.extraText.font;
+        extraTextAlignSelect.value = state.extraText.align;
+
+        // 배지/리본
+        badgeEnabledInput.checked = state.badge.enabled;
+        badgeCategorySelect.value = state.badge.category;
+        badgeTextInput.value = state.badge.text;
+        badgeBgColorInput.value = state.badge.bgColor;
+        badgeTextColorInput.value = state.badge.textColor;
+
+        ribbonEnabledInput.checked = state.ribbon.enabled;
+        ribbonTextInput.value = state.ribbon.text;
+        ribbonColorInput.value = state.ribbon.color;
+
+        // 그라데이션 등
+        gradientEnabledInput.checked = state.gradient.enabled;
+        gradientHeightInput.value = state.gradient.height;
+        gradientAlphaInput.value = state.gradient.alpha;
+        mainBgBoxEnabledInput.checked = state.mainBgBox.enabled;
+        mainBgBoxColorInput.value = state.mainBgBox.color;
+        mainBgBoxAlphaInput.value = state.mainBgBox.alpha;
+        mainUnderlineEnabledInput.checked = state.underline.mainEnabled;
+        arrowEnabledInput.checked = state.arrow.enabled;
+
+        // 가이드
+        gridEnabledInput.checked = state.guides.grid;
+        guidesEnabledInput.checked = state.guides.guides;
+        importantAreaEnabledInput.checked = state.guides.importantArea;
+        snapEnabledInput.checked = state.guides.snap;
+
+        // 저장
+        jpgQualityInput.value = state.export.jpgQuality;
+        document.querySelectorAll('input[name="export-res"]').forEach(r => {
+            r.checked = parseInt(r.value, 10) === state.export.resolution;
+        });
+
+        // 언어 버튼
+        langToggleBtn.textContent = state.language === 'ko' ? 'KR' : 'EN';
+    }
+
+    // ==========================
+    // 탭 전환
+    // ==========================
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabId = btn.getAttribute('data-tab');
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.control-group').forEach(g => g.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+        });
+    });
+
+    // 다크/라이트 모드
+    document.getElementById('toggle-mode').addEventListener('click', () => {
+        const root = document.documentElement;
+        root.classList.toggle('light-mode');
+        const icon = document.getElementById('toggle-icon');
+        if (root.classList.contains('light-mode')) {
+            icon.src = 'https://navercorp.com/img/common/ic-darkmode-on.png';
+        } else {
+            icon.src = 'https://navercorp.com/img/common/ic-lightmode-w.svg';
+        }
+        drawAll();
+    });
+
+    // 리다이렉트
+    document.getElementById('redirect-button').addEventListener('click', () => {
+        window.location.href = 'https://jisungeda55.github.io/imageplus/imagex';
+    });
+
+    // ==========================
+    // 저장 (PNG / JPG)
+    // ==========================
+    function exportCanvasAs(type) {
+        // 임시 캔버스에 스케일링
+        const targetH = state.export.resolution;
+        const ratio = canvas.width / canvas.height;
+        const targetW = targetH * ratio;
+
+        const off = document.createElement('canvas');
+        off.width = targetW;
+        off.height = targetH;
+        const octx = off.getContext('2d');
+        octx.drawImage(canvas, 0, 0, targetW, targetH);
+
+        const now = new Date();
+        const timeString = `${now.getFullYear().toString().slice(2)}.${(now.getMonth() + 1).toString().padStart(2, '0')}.${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}`;
+
+        if (type === 'png') {
+            off.toBlob((blob) => {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `${timeString}.png`;
+                a.click();
+            }, 'image/png');
+        } else if (type === 'jpg') {
+            off.toBlob((blob) => {
+                const mb = (blob.size / 1024 / 1024).toFixed(2);
+                fileSizeWarning.style.display = 'block';
+                fileSizeWarning.textContent = `압축 저장 완료: ${mb}MB`;
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `${timeString}.jpg`;
+                a.click();
+            }, 'image/jpeg', state.export.jpgQuality);
+        }
+    }
+
+    savePngButton.addEventListener('click', () => {
+        drawAll();
+        exportCanvasAs('png');
+    });
+
+    saveJpgButton.addEventListener('click', () => {
+        drawAll();
+        exportCanvasAs('jpg');
+    });
+
+    // ==========================
+    // 초기 설정
+    // ==========================
+    function init() {
+        subTextInput.value = state.subText.text;
+        syncUIFromState();
+        refreshRecentProjectsUI();
+        loadFromLocalStorage();
+        pushHistory();
+        drawAll();
+    }
+
+    init();
+</script>
+</body>
+</html>

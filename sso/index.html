@@ -3,414 +3,663 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>유튜브 썸네일 메이커 V2 (Mobile)</title>
-    <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@500;900&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <title>Image PLUS - Mobile & Pro</title>
+    <link rel="icon" type="image/png" href="https://i.ibb.co/YTq2tCG/iconx.webp">
     <style>
+        /* 폰트 정의 */
+        @font-face {
+            font-family: 'LINESeedKR-Bd';
+            src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_11-01@1.0/LINESeedKR-Bd.woff2') format('woff2');
+            font-weight: 700;
+        }
+        @font-face {
+            font-family: 'RiaSans-ExtraBold';
+            src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2410-1@1.0/RiaSans-ExtraBold.woff2') format('woff2');
+        }
+        @font-face {
+            font-family: 'SBAggroB';
+            src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroB.woff') format('woff');
+        }
+
         :root {
-            --primary: #FF0000;
-            --bg: #f0f2f5;
-            --canvas-w: 1280px;
-            --canvas-h: 720px;
+            --bg-color: #1d1d1f;
+            --panel-bg: #2c2c2e;
+            --text-color: #f5f5f7;
+            --accent-color: #00ffa3;
+            --accent-hover: #00b171;
+            --input-bg: #3a3a3c;
+            --border-radius: 16px;
         }
 
-        * { box-sizing: border-box; touch-action: manipulation; }
-        
+        .light-mode {
+            --bg-color: #f5f5f7;
+            --panel-bg: #ffffff;
+            --text-color: #1d1d1f;
+            --input-bg: #e5e5e7;
+        }
+
         body {
+            font-family: 'LINESeedKR-Bd', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             margin: 0;
-            padding: 0;
-            font-family: 'Noto Sans KR', sans-serif;
-            background-color: var(--bg);
-            height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* 전체 스크롤 방지 */
+            align-items: center;
+            min-height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+            overflow-x: hidden;
         }
 
-        /* 레이아웃 구조 */
-        .app-container {
+        /* 헤더 */
+        header {
+            width: 100%;
+            padding: 15px 20px;
             display: flex;
-            flex-direction: column;
-            height: 100%;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+            background-color: var(--panel-bg);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
         }
 
-        /* 1. 미리보기 영역 (상단) */
-        .preview-zone {
-            flex: 0 0 auto;
-            background-color: #222;
-            padding: 10px;
+        h1 { margin: 0; font-size: 1.2rem; }
+
+        /* 캔버스 영역 */
+        #canvas-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 960px;
+            margin: 20px auto;
+            padding: 0 10px;
+            box-sizing: border-box;
             display: flex;
             justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            position: relative;
-            z-index: 10;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
 
-        /* 2. 컨트롤 영역 (하단, 스크롤 가능) */
-        .control-zone {
+        canvas {
+            width: 100% !important;
+            height: auto !important;
+            max-width: 100%;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            touch-action: none; /* 터치 드래그 시 스크롤 방지 */
+            cursor: grab;
+        }
+        canvas:active { cursor: grabbing; }
+
+        /* 탭 메뉴 */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            background: var(--input-bg);
+            padding: 5px;
+            border-radius: 12px;
+        }
+        .tab-btn {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            color: var(--text-color);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
             flex: 1;
+            transition: 0.2s;
+        }
+        .tab-btn.active {
+            background-color: var(--bg-color);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* 컨트롤 패널 */
+        #controls-container {
+            width: 100%;
+            max-width: 600px;
+            padding: 0 20px 40px 20px;
+            box-sizing: border-box;
+        }
+
+        .control-group {
+            display: none; /* 기본 숨김 */
+            background-color: var(--panel-bg);
             padding: 20px;
-            overflow-y: auto;
-            background: white;
-            padding-bottom: 50px; /* 하단 여백 */
+            border-radius: var(--border-radius);
+            flex-direction: column;
+            gap: 15px;
         }
+        .control-group.active { display: flex; }
 
-        /* 썸네일 작업 공간 (절대 크기 1280x720) */
-        #workspace {
-            width: var(--canvas-w);
-            height: var(--canvas-h);
-            background-color: #000;
-            position: relative;
-            overflow: hidden;
-            transform-origin: top center; /* 축소 시 기준점 */
-            flex-shrink: 0;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        /* 입력 요소 스타일 */
+        .input-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
         }
-
-        #bg-layer {
-            width: 100%; height: 100%;
-            object-fit: cover;
-            position: absolute;
-            top: 0; left: 0;
-        }
+        .input-label { font-size: 0.9rem; color: #888; }
         
-        #overlay-layer {
-            width: 100%; height: 100%;
-            position: absolute;
-            background: black;
-            opacity: 0.2;
-            pointer-events: none;
-        }
-
-        /* 텍스트 스타일 */
-        .move-text {
-            position: absolute;
-            font-family: 'Black Han Sans', sans-serif;
-            white-space: pre-wrap;
-            text-align: center;
-            cursor: move;
-            line-height: 1.1;
-            user-select: none;
-            /* 모바일 터치 시 하이라이트 방지 */
-            -webkit-tap-highlight-color: transparent; 
-            /* 텍스트 외곽선 (가독성) */
-            text-shadow: 4px 4px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
-        }
-
-        .move-text.active {
-            outline: 4px dashed #fff;
-        }
-
-        /* 컨트롤 UI 스타일 */
-        h2 { margin: 0 0 15px 0; font-size: 1.2rem; color: #333; }
-        
-        .input-group {
-            margin-bottom: 20px;
-            background: #f9f9f9;
-            padding: 15px;
+        input[type="text"], input[type="range"] {
+            width: 100%;
+            padding: 12px;
+            border: none;
             border-radius: 10px;
-            border: 1px solid #eee;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            box-sizing: border-box;
+            font-family: inherit;
         }
-        
-        .label-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: bold; font-size: 0.9rem; color: #555; }
-        
-        input[type="text"] {
-            width: 100%; padding: 12px; font-size: 1rem; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 10px;
-        }
-        
-        .tool-row { display: flex; gap: 10px; }
-        .tool-item { flex: 1; display: flex; flex-direction: column; }
-        .tool-item label { font-size: 0.8rem; margin-bottom: 4px; color: #888; }
-        input[type="color"] { width: 100%; height: 40px; border: none; padding: 0; cursor: pointer; border-radius: 4px; }
-        input[type="number"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
-        input[type="range"] { width: 100%; }
 
         /* 파일 업로드 버튼 커스텀 */
-        .file-input-wrapper {
-            position: relative;
-            margin-bottom: 15px;
+        .file-btn {
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            justify-content: center;
+            box-sizing: border-box;
+            font-weight: bold;
         }
-        .file-input-wrapper input {
-            position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer;
+        .file-btn:hover { background-color: #444; }
+        .light-mode .file-btn:hover { background-color: #d1d1d1; }
+
+        /* 메인 버튼 */
+        .action-btn {
+            background-color: var(--accent-color);
+            color: #000;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.1s;
         }
-        .custom-file-btn {
-            display: block; width: 100%; padding: 12px;
-            background: #333; color: white; text-align: center;
-            border-radius: 8px; font-weight: bold;
+        .action-btn:active { transform: scale(0.98); }
+
+        /* 토글 버튼 */
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
         }
 
-        .btn-save {
-            width: 100%; padding: 16px;
-            background-color: var(--primary);
-            color: white; border: none; border-radius: 8px;
-            font-size: 1.1rem; font-weight: 900;
-            box-shadow: 0 4px 6px rgba(255,0,0,0.3);
+        /* 범위 슬라이더 커스텀 */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            margin-top: -8px;
             cursor: pointer;
         }
-        .btn-save:active { transform: scale(0.98); }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            background: #888;
+            border-radius: 2px;
+        }
 
-        /* PC 화면 대응 (가로 배치) */
-        @media (min-width: 1024px) {
-            .app-container { flex-direction: row; }
-            .preview-zone { flex: 1; height: 100vh; order: 2; }
-            .control-zone { width: 400px; height: 100vh; order: 1; border-right: 1px solid #ddd; }
+        .guide-text {
+            font-size: 0.8rem;
+            color: #888;
+            text-align: center;
+            margin-top: -10px;
+            margin-bottom: 10px;
+        }
+
+        /* 모바일 최적화 */
+        @media (max-width: 600px) {
+            h1 { font-size: 1rem; }
+            #controls-container { padding-bottom: 80px; }
         }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <div class="preview-zone" id="preview-container">
-        <div id="workspace">
-            <img id="bg-layer" src="" alt="" style="display:none;">
-            <div id="overlay-layer"></div>
-            
-            <div id="t1" class="move-text" style="top:20%; left:50%; transform:translate(-50%, -50%); font-size:110px; color:#FFE400; z-index:2;">
-                어그로 제목<br>여기 입력
-            </div>
-            
-            <div id="t2" class="move-text" style="top:75%; left:50%; transform:translate(-50%, -50%); font-size:60px; color:#fff; background:rgba(200,0,0,1); padding:10px 40px; border-radius:15px; z-index:2;">
-                핵심 내용 요약
-            </div>
+    <header>
+        <h1>Image PLUS <span style="font-size:0.8em; opacity:0.7;">Mobile</span></h1>
+        <div style="display:flex; gap:10px;">
+            <button class="icon-btn" id="toggle-mode">
+                <img id="toggle-icon" src="https://navercorp.com/img/common/ic-darkmode.svg" alt="Toggle" width="24" height="24">
+            </button>
+            <button class="icon-btn" id="redirect-button" style="background:var(--accent-color); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center;">
+                <img src="https://www.svgrepo.com/show/532225/table-layout.svg" alt="Link" width="18" height="18">
+            </button>
         </div>
+    </header>
+
+    <div id="canvas-wrapper">
+        <canvas id="thumbnail" width="1920" height="1080"></canvas>
     </div>
-
-    <div class="control-zone">
-        <h2>🎨 썸네일 편집기</h2>
-        
-        <div class="input-group">
-            <div class="label-row"><span>1. 사진 업로드</span></div>
-            <div class="file-input-wrapper">
-                <button class="custom-file-btn">📷 갤러리에서 사진 선택</button>
-                <input type="file" id="inp-img" accept="image/*">
-            </div>
-            <div class="label-row"><span>배경 어둡기 (글자 잘보이게)</span></div>
-            <input type="range" id="inp-dim" min="0" max="0.8" step="0.1" value="0.2">
-        </div>
-
-        <div class="input-group">
-            <div class="label-row"><span>2. 큰 제목 (노란색)</span></div>
-            <input type="text" id="inp-t1" value="어그로 제목&#10;여기 입력"> <div class="tool-row">
-                <div class="tool-item">
-                    <label>글자색</label>
-                    <input type="color" id="col-t1" value="#FFE400">
-                </div>
-                <div class="tool-item">
-                    <label>크기</label>
-                    <input type="number" id="siz-t1" value="110">
-                </div>
-            </div>
-        </div>
-
-        <div class="input-group">
-            <div class="label-row"><span>3. 강조 박스 (빨간색)</span></div>
-            <input type="text" id="inp-t2" value="핵심 내용 요약">
-            <div class="tool-row">
-                <div class="tool-item">
-                    <label>글자색</label>
-                    <input type="color" id="col-t2" value="#ffffff">
-                </div>
-                <div class="tool-item">
-                    <label>배경색</label>
-                    <input type="color" id="bg-t2" value="#c80000">
-                </div>
-            </div>
-        </div>
-
-        <button class="btn-save" onclick="saveImage()">이미지 저장하기 (다운로드)</button>
-        <p style="text-align:center; color:#888; font-size:0.8rem; margin-top:10px;">
-            *화면의 글자를 손가락으로 드래그해보세요!
-        </p>
-    </div>
-</div>
-
-<script>
-    // === 1. 요소 초기화 ===
-    const workspace = document.getElementById('workspace');
-    const container = document.getElementById('preview-container');
-    const bgImg = document.getElementById('bg-layer');
     
-    // === 2. 화면 크기에 맞춰 캔버스 축소 (반응형 핵심) ===
-    let currentScale = 1;
+    <p class="guide-text">💡 텍스트와 로고를 터치하여 위치를 이동해보세요</p>
 
-    function fitWorkspace() {
-        const padding = 20; // 여백
-        const availableW = container.clientWidth - padding;
-        const availableH = container.clientHeight - padding;
+    <div id="controls-container">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('tab-bg')">배경/로고</button>
+            <button class="tab-btn" onclick="switchTab('tab-text')">텍스트</button>
+            <button class="tab-btn" onclick="switchTab('tab-save')">저장</button>
+        </div>
+
+        <div id="tab-bg" class="control-group active">
+            <label class="file-btn">
+                📸 배경 이미지 선택
+                <input type="file" id="image-upload" accept="image/*" style="display: none;">
+            </label>
+            
+            <div style="border-top: 1px solid #555; margin: 10px 0;"></div>
+
+            <label class="file-btn">
+                🖼️ 로고 이미지 추가
+                <input type="file" id="logo-upload" accept="image/*" style="display: none;">
+            </label>
+            
+            <div class="input-row">
+                <span class="input-label">로고 크기</span>
+                <input type="range" id="logo-scale" min="0.1" max="2.0" step="0.1" value="1.0">
+            </div>
+        </div>
+
+        <div id="tab-text" class="control-group">
+            <div>
+                <span class="input-label">하단 메인 텍스트 (색상코드: (r),(b),(g),(y),(k))</span>
+                <input type="text" id="text-input" placeholder="여기에 텍스트 입력">
+            </div>
+            <div class="input-row">
+                <span class="input-label">크기</span>
+                <input type="range" id="main-text-size" min="100" max="300" step="10" value="180">
+            </div>
+
+            <div style="border-top: 1px solid #555; margin: 10px 0;"></div>
+
+            <div>
+                <span class="input-label">우측 상단 텍스트 (날짜 등)</span>
+                <input type="text" id="top-right-text-input" placeholder="날짜 입력">
+            </div>
+            <div class="input-row">
+                <span class="input-label">크기</span>
+                <input type="range" id="sub-text-size" min="50" max="200" step="5" value="100">
+            </div>
+        </div>
+
+        <div id="tab-save" class="control-group">
+            <button id="save-button" class="action-btn">이미지로 저장 (PNG)</button>
+            <button id="compress-button" class="action-btn" style="background-color: #444; color: white; margin-top:0;">압축 저장 (JPG)</button>
+            <div id="file-size-warning" style="color: #ff453a; text-align: center; display: none; margin-top: 10px;"></div>
+        </div>
+    </div>
+
+    <script>
+        // DOM 요소 참조
+        const canvas = document.getElementById('thumbnail');
+        const ctx = canvas.getContext('2d');
+        const inputs = {
+            mainText: document.getElementById('text-input'),
+            subText: document.getElementById('top-right-text-input'),
+            logoScale: document.getElementById('logo-scale'),
+            mainTextSize: document.getElementById('main-text-size'),
+            subTextSize: document.getElementById('sub-text-size')
+        };
         
-        // 가로/세로 비율 중 더 많이 줄여야 하는 쪽 기준
-        const scaleW = availableW / 1280;
-        const scaleH = availableH / 720;
-        currentScale = Math.min(scaleW, scaleH); // 더 작은 비율 선택
+        // 상태 변수 (위치, 이미지 등 저장)
+        const state = {
+            bgImage: null,
+            logoImage: null,
+            logo: { x: 40, y: 40, baseWidth: 0, baseHeight: 0, scale: 1.0 },
+            mainText: { x: 45, y: 1004, content: "" }, // y = 1080 - 76
+            subText: { x: 1500, y: 120, content: "" }, // 초기값 임시
+            isDragging: null, // 'logo', 'mainText', 'subText' 중 하나
+            dragOffset: { x: 0, y: 0 }
+        };
 
-        // 너무 커지지 않게 제한 (PC에서)
-        if (currentScale > 1) currentScale = 1; // 굳이 확대하진 않음
-
-        workspace.style.transform = `scale(${currentScale})`;
+        // 초기화
+        const today = new Date();
+        inputs.subText.value = `${today.getFullYear().toString().slice(2)}.${(today.getMonth() + 1).toString().padStart(2, '0')}.${today.getDate().toString().padStart(2, '0')}`;
         
-        // CSS transform은 공간을 차지하므로, 마진이나 높이 조정이 필요할 수 있음
-        // 여기서는 Flex 중앙 정렬로 처리됨.
-    }
+        // 초기 그리기
+        drawCanvas();
 
-    window.addEventListener('resize', fitWorkspace);
-    // 이미지 로드 시 레이아웃 깨짐 방지용 딜레이 실행
-    setTimeout(fitWorkspace, 100);
+        // --- 이벤트 리스너 ---
 
-    // === 3. 이미지 업로드 처리 ===
-    document.getElementById('inp-img').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                bgImg.src = evt.target.result;
-                bgImg.style.display = 'block';
+        // 1. 이미지 업로드
+        document.getElementById('image-upload').addEventListener('change', (e) => loadFile(e.target.files[0], 'bg'));
+        document.getElementById('logo-upload').addEventListener('change', (e) => loadFile(e.target.files[0], 'logo'));
+
+        function loadFile(file, type) {
+            if (!file) return;
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+                if (type === 'bg') {
+                    state.bgImage = img;
+                } else {
+                    state.logoImage = img;
+                    // 로고 초기 크기 계산 (최대 300px 제한 로직 유지)
+                    const maxDim = 300;
+                    const aspect = img.width / img.height;
+                    if (img.width > maxDim || img.height > maxDim) {
+                        if (aspect > 1) {
+                            state.logo.baseWidth = maxDim;
+                            state.logo.baseHeight = maxDim / aspect;
+                        } else {
+                            state.logo.baseHeight = maxDim;
+                            state.logo.baseWidth = maxDim * aspect;
+                        }
+                    } else {
+                        state.logo.baseWidth = img.width;
+                        state.logo.baseHeight = img.height;
+                    }
+                }
+                drawCanvas();
+            };
+            img.src = URL.createObjectURL(file);
+        }
+
+        // 2. 입력 값 변경 감지
+        Object.values(inputs).forEach(input => {
+            input.addEventListener('input', () => {
+                state.logo.scale = parseFloat(inputs.logoScale.value);
+                drawCanvas();
+            });
+        });
+
+        // 3. 탭 전환 기능
+        window.switchTab = (tabId) => {
+            document.querySelectorAll('.control-group').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        };
+
+        // 4. 드래그 앤 드롭 (마우스 + 터치)
+        const getPointerPos = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            
+            let clientX = e.clientX;
+            let clientY = e.clientY;
+
+            if (e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
             }
-            reader.readAsDataURL(file);
-        }
-    });
 
-    document.getElementById('inp-dim').addEventListener('input', (e) => {
-        document.getElementById('overlay-layer').style.opacity = e.target.value;
-    });
+            return {
+                x: (clientX - rect.left) * scaleX,
+                y: (clientY - rect.top) * scaleY
+            };
+        };
 
-    // === 4. 텍스트 실시간 수정 연결 ===
-    function bindInput(inputId, textId, type) {
-        const inp = document.getElementById(inputId);
-        const txt = document.getElementById(textId);
+        const handleStart = (e) => {
+            const pos = getPointerPos(e);
+            
+            // 클릭 히트 테스트 (Hit Test)
+            // 1. 로고 확인
+            if (state.logoImage) {
+                const w = state.logo.baseWidth * state.logo.scale;
+                const h = state.logo.baseHeight * state.logo.scale;
+                if (pos.x >= state.logo.x && pos.x <= state.logo.x + w &&
+                    pos.y >= state.logo.y && pos.y <= state.logo.y + h) {
+                    state.isDragging = 'logo';
+                    state.dragOffset = { x: pos.x - state.logo.x, y: pos.y - state.logo.y };
+                    return;
+                }
+            }
+
+            // 2. 메인 텍스트 확인 (대략적인 높이 가정)
+            const mainSize = parseInt(inputs.mainTextSize.value);
+            // 메인 텍스트는 baseline이 하단이므로 y값 위쪽으로 영역 잡음
+            if (pos.y <= state.mainText.y && pos.y >= state.mainText.y - mainSize) {
+                // 간단한 X 범위 체크 (정확한 width 계산 대신 화면 전체 허용하되 근처일 때)
+                if (pos.x >= state.mainText.x - 50 && pos.x <= canvas.width) {
+                    state.isDragging = 'mainText';
+                    state.dragOffset = { x: pos.x - state.mainText.x, y: pos.y - state.mainText.y };
+                    return;
+                }
+            }
+
+            // 3. 서브 텍스트 확인
+            const subSize = parseInt(inputs.subTextSize.value);
+            // 서브 텍스트도 비슷하게 처리 (대략적 영역)
+            if (pos.y <= state.subText.y && pos.y >= state.subText.y - subSize) {
+                 if (pos.x <= state.subText.x + 500 && pos.x >= state.subText.x - 500) { // 넓게 잡음
+                    state.isDragging = 'subText';
+                    state.dragOffset = { x: pos.x - state.subText.x, y: pos.y - state.subText.y };
+                    return;
+                }
+            }
+        };
+
+        const handleMove = (e) => {
+            if (!state.isDragging) return;
+            e.preventDefault(); // 스크롤 방지
+            const pos = getPointerPos(e);
+
+            if (state.isDragging === 'logo') {
+                state.logo.x = pos.x - state.dragOffset.x;
+                state.logo.y = pos.y - state.dragOffset.y;
+            } else if (state.isDragging === 'mainText') {
+                state.mainText.x = pos.x - state.dragOffset.x;
+                state.mainText.y = pos.y - state.dragOffset.y;
+            } else if (state.isDragging === 'subText') {
+                state.subText.x = pos.x - state.dragOffset.x;
+                state.subText.y = pos.y - state.dragOffset.y;
+            }
+            drawCanvas();
+        };
+
+        const handleEnd = () => {
+            state.isDragging = null;
+        };
+
+        canvas.addEventListener('mousedown', handleStart);
+        canvas.addEventListener('mousemove', handleMove);
+        window.addEventListener('mouseup', handleEnd);
         
-        inp.addEventListener('input', () => {
-            if (type === 'text') txt.innerText = inp.value;
-            if (type === 'color') txt.style.color = inp.value;
-            if (type === 'bg') txt.style.backgroundColor = inp.value;
-            if (type === 'size') txt.style.fontSize = inp.value + 'px';
+        canvas.addEventListener('touchstart', handleStart, { passive: false });
+        canvas.addEventListener('touchmove', handleMove, { passive: false });
+        window.addEventListener('touchend', handleEnd);
+
+
+        // --- 그리기 로직 ---
+        function drawCanvas() {
+            // 배경 초기화
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--bg-color');
+            
+            // 1. 배경 이미지
+            if (state.bgImage) {
+                ctx.drawImage(state.bgImage, 0, 0, canvas.width, canvas.height);
+            } else {
+                ctx.fillStyle = '#333';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                // 데모용 플레이스홀더 텍스트
+                ctx.font = 'bold 100px sans-serif';
+                ctx.fillStyle = '#555';
+                ctx.textAlign = 'center';
+                ctx.fillText('이미지를 추가하세요', canvas.width/2, canvas.height/2);
+            }
+
+            // 2. 로고
+            if (state.logoImage) {
+                const w = state.logo.baseWidth * state.logo.scale;
+                const h = state.logo.baseHeight * state.logo.scale;
+                ctx.drawImage(state.logoImage, state.logo.x, state.logo.y, w, h);
+                
+                // 선택 표시 (드래그 중일 때)
+                if(state.isDragging === 'logo') {
+                    ctx.strokeStyle = '#00ffa3';
+                    ctx.lineWidth = 4;
+                    ctx.strokeRect(state.logo.x, state.logo.y, w, h);
+                }
+            }
+
+            // 3. 메인 텍스트 (좌측 하단)
+            const mainTextVal = inputs.mainText.value;
+            if (mainTextVal) {
+                const size = inputs.mainTextSize.value;
+                ctx.font = `bold ${size}px SBAggroB`;
+                ctx.textAlign = 'left';
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = size * 0.03; // 폰트 크기에 비례한 외곽선
+
+                let startX = state.mainText.x;
+                const startY = state.mainText.y;
+                
+                const parts = mainTextVal.split(/(\(r\).*?\(r\)|\(g\).*?\(g\)|\(b\).*?\(b\)|\(y\).*?\(y\)|\(k\).*?\(k\))/);
+
+                parts.forEach(part => {
+                    let color = 'white';
+                    let text = part;
+                    
+                    if (part.match(/^\(.\).*\(.\)$/)) {
+                        text = part.slice(3, -3);
+                        if (part.startsWith('(r)')) color = '#ff0000';
+                        else if (part.startsWith('(g)')) color = '#00ffa3e6';
+                        else if (part.startsWith('(b)')) color = '#153cff';
+                        else if (part.startsWith('(y)') && part.endsWith('(y)')) color = '#ffdb4d'; // 노랑
+                        else if (part.startsWith('(k)') && part.endsWith('(k)')) color = '#1d1d1d'; // 검정
+                    }
+
+                    ctx.fillStyle = color;
+                    ctx.strokeText(text, startX, startY);
+                    ctx.fillText(text, startX, startY);
+                    startX += ctx.measureText(text).width;
+                });
+                
+                // 드래그 가이드
+                if(state.isDragging === 'mainText') {
+                    ctx.fillStyle = 'rgba(0, 255, 163, 0.3)';
+                    ctx.fillRect(state.mainText.x - 10, startY - size, startX - state.mainText.x + 20, parseInt(size) + 20);
+                }
+            }
+
+            // 4. 서브 텍스트 (우측 상단)
+            const subTextVal = inputs.subText.value;
+            if (subTextVal) {
+                const size = inputs.subTextSize.value;
+                ctx.font = `bold ${size}px RiaSans-ExtraBold`;
+                // 원본 로직 유지: 우측 정렬 느낌을 위해 텍스트 전체 길이를 계산하고 x에서 뺌
+                // 하지만 드래그 기능을 위해 state.subText.x를 '끝점'으로 설정하거나 '시작점'으로 설정해야 함.
+                // 여기서는 state.subText.x를 텍스트의 "오른쪽 끝" 좌표로 활용하여 원본 로직의 위치(canvas.width - 46)를 모방함.
+                
+                // 우측 상단 텍스트는 "우측 정렬"이 기본이므로, 
+                // 초기값 state.subText.x 가 canvas.width - 46 정도로 설정됨.
+                if (state.subText.x > 1400 && state.isDragging === null && state.subText.x === 1500) {
+                     // 첫 렌더링 시 위치 보정
+                     state.subText.x = canvas.width - 46; 
+                }
+
+                const parts = subTextVal.split(/(\(r\).*?\(r\)|\(g\).*?\(g\)|\(b\).*?\(b\)|\(y\).*?\(y\)|\(k\).*?\(k\))/);
+                
+                // 전체 길이 계산
+                let totalWidth = 0;
+                parts.forEach(part => {
+                    let text = part;
+                    if (part.match(/^\(.\).*\(.\)$/)) text = part.slice(3, -3);
+                    totalWidth += ctx.measureText(text).width;
+                });
+
+                // 그리기 시작점 (오른쪽 기준좌표 - 전체너비)
+                let drawX = state.subText.x - totalWidth;
+                const drawY = state.subText.y;
+
+                ctx.textAlign = 'left';
+                ctx.lineWidth = size * 0.03;
+
+                parts.forEach(part => {
+                    let color = 'white';
+                    let text = part;
+                    if (part.match(/^\(.\).*\(.\)$/)) {
+                        text = part.slice(3, -3);
+                        if (part.startsWith('(r)')) color = '#ff0000';
+                        else if (part.startsWith('(g)')) color = '#00ffa3e6';
+                        else if (part.startsWith('(b)')) color = '#3f8bff';
+                        else if (part.startsWith('(y)') && part.endsWith('(y)')) color = '#ffdb4d'; 
+                        else if (part.startsWith('(k)') && part.endsWith('(k)')) color = '#1d1d1d';
+                    }
+
+                    ctx.strokeStyle = 'black';
+                    ctx.fillStyle = color;
+                    ctx.strokeText(text, drawX, drawY);
+                    ctx.fillText(text, drawX, drawY);
+                    drawX += ctx.measureText(text).width;
+                });
+
+                // 드래그 가이드
+                if(state.isDragging === 'subText') {
+                    ctx.fillStyle = 'rgba(0, 255, 163, 0.3)';
+                    ctx.fillRect(state.subText.x - totalWidth - 10, drawY - size, totalWidth + 20, parseInt(size) + 20);
+                }
+            }
+        }
+
+
+        // --- 유틸리티 기능 ---
+        
+        // 다크 모드 토글
+        document.getElementById('toggle-mode').addEventListener('click', () => {
+            const root = document.documentElement;
+            root.classList.toggle('light-mode');
+            const icon = document.getElementById('toggle-icon');
+            if (root.classList.contains('light-mode')) {
+                icon.src = 'https://navercorp.com/img/common/ic-darkmode-on.png';
+            } else {
+                icon.src = 'https://navercorp.com/img/common/ic-lightmode-w.svg';
+            }
+            drawCanvas();
         });
-    }
 
-    bindInput('inp-t1', 't1', 'text');
-    bindInput('col-t1', 't1', 'color');
-    bindInput('siz-t1', 't1', 'size');
+        // 리다이렉트
+        document.getElementById('redirect-button').addEventListener('click', () => {
+            window.location.href = 'https://jisungeda55.github.io/imageplus/imagex';
+        });
 
-    bindInput('inp-t2', 't2', 'text');
-    bindInput('col-t2', 't2', 'color');
-    bindInput('bg-t2', 't2', 'bg');
-
-
-    // === 5. 드래그 로직 (모바일 터치 + PC 마우스 통합) ===
-    let activeItem = null;
-    let startX = 0, startY = 0;
-    let initialLeft = 0, initialTop = 0;
-
-    const draggables = document.querySelectorAll('.move-text');
-
-    draggables.forEach(item => {
-        // PC 마우스
-        item.addEventListener('mousedown', startDrag);
-        // 모바일 터치
-        item.addEventListener('touchstart', startDrag, { passive: false });
-    });
-
-    function startDrag(e) {
-        // 기본 터치 동작(스크롤 등) 방지
-        if(e.type === 'touchstart') e.preventDefault();
-        
-        activeItem = this;
-        activeItem.classList.add('active'); // 테두리 표시
-
-        // 이벤트 좌표 통일
-        const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-        const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
-
-        startX = clientX;
-        startY = clientY;
-
-        // 현재 style.left/top 값 파싱 (없으면 중앙 배치된 computed style 가져오기)
-        const rect = activeItem.getBoundingClientRect();
-        const parentRect = workspace.getBoundingClientRect();
-
-        // transform:translate(-50%, -50%) 때문에 오프셋 계산이 복잡함.
-        // 단순히 현재 위치에서 델타값만 더해주는 방식으로 구현하는 게 안전함.
-        
-        // 현재 요소의 CSS left/top 값 (px 단위가 아닐 수도 있음)
-        // 드래그 시작 시점의 절대 좌표를 기억하지 않고, 
-        // 움직인 거리만큼을 기존 left/top에 더해주는 방식 사용.
-        
-        // 초기값 세팅 (최초 1회만 % -> px 변환 필요할 수 있음)
-        // 간단하게: 현재 offsetLeft, offsetTop은 transform 영향 받음.
-        // 가장 확실한 방법: getBoundingClientRect로 현재 캔버스 내 좌표 역산.
-        
-        // 하지만 더 쉬운 방법:
-        // 그냥 현재 마우스가 움직인 거리(delta)를 scale로 나눠서 현재 style.left/top에 더함.
-        
-        // style.left가 %일 경우 px로 강제 변환
-        const computed = window.getComputedStyle(activeItem);
-        if (activeItem.style.left.includes('%')) {
-            activeItem.style.left = computed.left;
-            activeItem.style.top = computed.top;
-            activeItem.style.transform = 'translate(-50%, -50%)'; // 중심점 유지
-        }
-
-        document.addEventListener('mousemove', onDrag);
-        document.addEventListener('mouseup', endDrag);
-        document.addEventListener('touchmove', onDrag, { passive: false });
-        document.addEventListener('touchend', endDrag);
-    }
-
-    function onDrag(e) {
-        if (!activeItem) return;
-        if(e.type === 'touchmove') e.preventDefault(); // 스크롤 방지
-
-        const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-        const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
-
-        const deltaX = (clientX - startX) / currentScale; // 축소된 비율만큼 보정
-        const deltaY = (clientY - startY) / currentScale;
-
-        // 현재 위치 값 가져오기 (px)
-        let currLeft = parseFloat(activeItem.style.left);
-        let currTop = parseFloat(activeItem.style.top);
-
-        activeItem.style.left = (currLeft + deltaX) + 'px';
-        activeItem.style.top = (currTop + deltaY) + 'px';
-
-        // 시작점 업데이트
-        startX = clientX;
-        startY = clientY;
-    }
-
-    function endDrag() {
-        if (activeItem) {
-            activeItem.classList.remove('active');
-            activeItem = null;
-        }
-        document.removeEventListener('mousemove', onDrag);
-        document.removeEventListener('mouseup', endDrag);
-        document.removeEventListener('touchmove', onDrag);
-        document.removeEventListener('touchend', endDrag);
-    }
-
-    // === 6. 저장 기능 ===
-    function saveImage() {
-        // 저장 전 선택 테두리 제거
-        if(activeItem) activeItem.classList.remove('active');
-        
-        // 캔버스 캡처
-        html2canvas(workspace, {
-            scale: 1, // 원본 크기(1280x720)로 캡처
-            backgroundColor: null,
-            useCORS: true
-        }).then(canvas => {
+        // 저장 기능
+        const downloadFile = (blob, ext) => {
             const link = document.createElement('a');
-            link.download = 'thumbnail.jpg';
-            link.href = canvas.toDataURL('image/jpeg', 0.9);
+            const now = new Date();
+            const timeString = `${now.getFullYear().toString().slice(2)}.${(now.getMonth() + 1).toString().padStart(2, '0')}.${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}`;
+            link.download = `${timeString}.${ext}`;
+            link.href = URL.createObjectURL(blob);
             link.click();
+        };
+
+        document.getElementById('save-button').addEventListener('click', () => {
+            drawCanvas();
+            canvas.toBlob((blob) => {
+                downloadFile(blob, 'png');
+            }, 'image/png');
         });
-    }
 
-    // 초기 실행
-    fitWorkspace();
-</script>
+        document.getElementById('compress-button').addEventListener('click', () => {
+            drawCanvas();
+            // 간단 압축 로직 (퀄리티 0.8)
+            canvas.toBlob((blob) => {
+                const mb = (blob.size / 1024 / 1024).toFixed(2);
+                const warning = document.getElementById('file-size-warning');
+                warning.style.display = 'block';
+                warning.textContent = `압축 저장 완료: ${mb}MB`;
+                downloadFile(blob, 'jpg');
+            }, 'image/jpeg', 0.8);
+        });
 
+    </script>
 </body>
 </html>

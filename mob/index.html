@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Image PLUS - Thumbnail Studio</title>
+    <link rel="icon" type="image/png" href="https://i.ibb.co/YTq2tCG/iconx.webp">
+    <!-- 폰트 -->
+    <style>
+        @font-face {
+            font-family: 'LINESeedKR-Bd';
+            src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_11-01@1.0/LINESeedKR-Bd.woff2') format('woff2');
+            font-weight: 700;
+        }
+        @font-face {
+            font-family: 'RiaSans-ExtraBold';
+            src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2410-1@1.0/RiaSans-ExtraBold.woff2') format('woff2');
+        }
+        @font-face {
+            font-family: 'SBAggroB';
+            src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroB.woff') format('woff');
+        }
+
+        :root {
+            --bg-color: #1d1d1f;
+            --panel-bg: #2c2c2e;
+            --text-color: #f5f5f7;
+            --accent-color: #00ffa3;
+            --accent-hover: #00b171;
+            --input-bg: #3a3a3c;
+            --border-radius: 16px;
+        }
+
+        .light-mode {
+            --bg-color: #f5f5f7;
+            --panel-bg: #ffffff;
+            --text-color: #1d1d1f;
+            --input-bg: #e5e5e7;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'LINESeedKR-Bd', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+            overflow-x: hidden;
+        }
+
+        header {
+            width: 100%;
+            padding: 10px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--panel-bg);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+            position: sticky;
+            top: 0;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+        }
+
+        h1 span {
+            font-size: 0.75rem;
+            opacity: 0.7;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 999px;
+        }
+
+        .icon-btn:hover {
+            background-color: rgba(255,255,255,0.05);
+        }
+
+        #redirect-button {
+            background: var(--accent-color);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+        #redirect-button img {
+            filter: brightness(0);
+        }
+
+        /* 캔버스 영역 */
+        #canvas-section {
+            width: 100%;
+            max-width: 1100px;
+            padding: 16px;
+        }
+
+        #canvas-wrapper {
+            position: relative;
+            width: 100%;
+            margin: 10px auto;
+            display: flex;
+            justify-content: center;
+        }
+
+        canvas#main-canvas {
+            width: 100% !important;
+            height: auto !important;
+            max-width: 100%;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            touch-action: none;
+            cursor: grab;
+            background-color: #333;
+            transform-origin: center center;
+        }
+
+        canvas#main-canvas:active {
+            cursor: grabbing;
+        }
+
+        #preview-wrapper {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+
+        #preview-canvas {
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            background-color: #222;
+        }
+
+        #zoom-row {
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+        }
+
+        /* 컨트롤 패널 */
+        #controls-container {
+            width: 100%;
+            max-width: 1100px;
+            padding: 0 16px 32px 16px;
+        }
+
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .tab-btn {
+            padding: 8px 12px;
+            border: none;
+            background: var(--panel-bg);
+            color: var(--text-color);
+            border-radius: 999px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            flex: 0 0 auto;
+            transition: 0.15s;
+            opacity: 0.7;
+        }
+
+        .tab-btn.active {
+            background-color: var(--accent-color);
+            color: #000;
+            opacity: 1;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+        }
+
+        .control-group {
+            display: none;
+            background-color: var(--panel-bg);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            margin-bottom: 10px;
+        }
+
+        .control-group.active {
+            display: block;
+        }
+
+        .section-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            margin: 4px 0 8px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-title small {
+            font-weight: 400;
+            font-size: 0.7rem;
+            opacity: 0.7;
+        }
+
+        .section {
+            border-radius: 12px;
+            background-color: rgba(0,0,0,0.08);
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .input-label {
+            font-size: 0.78rem;
+            min-width: 80px;
+            color: #aaa;
+        }
+
+        input[type="text"], select {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: none;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 0.8rem;
+        }
+
+        textarea {
+            width: 100%;
+            border-radius: 8px;
+            border: none;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 0.8rem;
+            padding: 8px 10px;
+            resize: vertical;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            background: transparent;
+            flex: 1;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            cursor: pointer;
+            margin-top: -6px;
+        }
+
+        input[type="range"]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            background: #777;
+            border-radius: 2px;
+        }
+
+        .file-btn {
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            padding: 8px 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            border: none;
+        }
+
+        .file-btn:hover {
+            background-color: #444;
+        }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            margin-bottom: 6px;
+        }
+
+        .toggle-row label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .toggle-row input[type="checkbox"] {
+            width: 32px;
+            height: 16px;
+        }
+
+        .pill-btn {
+            border-radius: 999px;
+            border: none;
+            padding: 5px 9px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            background-color: rgba(255,255,255,0.06);
+            color: var(--text-color);
+        }
+
+        .pill-btn.active {
+            background-color: var(--accent-color);
+            color: #000;
+        }
+
+        .action-btn {
+            background-color: var(--accent-color);
+            color: #000;
+            border: none;
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 6px;
+        }
+
+        .action-btn.secondary {
+            background-color: #444;
+            color: #fff;
+        }
+
+        .action-btn.danger {
+            background-color: #ff453a;
+            color: #fff;
+        }
+
+        .guide-text {
+            font-size: 0.75rem;
+            color: #999;
+            text-align: center;
+        }
+
+        .small-tag {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 999px;
+            background: rgba(0,0,0,0.3);
+        }
+
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .row > * {
+            flex: 1 1 120px;
+        }
+
+        .mini-template-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .mini-template {
+            width: 70px;
+            height: 40px;
+            border-radius: 6px;
+            background: #333;
+            position: relative;
+            border: 1px solid #555;
+            cursor: pointer;
+        }
+
+        .mini-template span {
+            position: absolute;
+            font-size: 0.4rem;
+            color: #fff;
+        }
+
+        .mini-template .mt-main {
+            bottom: 2px;
+            left: 2px;
+            right: 2px;
+            height: 6px;
+            background: #ffdb4d;
+        }
+
+        .mini-template .mt-sub {
+            top: 2px;
+            right: 2px;
+            width: 18px;
+            height: 4px;
+            background: #fff;
+        }
+
+        .mini-template .mt-logo {
+            top: 2px;
+            left: 2px;
+            width: 6px;
+            height: 6px;
+            background: #00ffa3;
+        }
+
+        .template-label {
+            font-size: 0.7rem;
+            text-align: center;
+            margin-top: 2px;
+        }
+
+        .project-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            max-height: 120px;
+            overflow-y: auto;
+            font-size: 0.8rem;
+        }
+
+        .project-item {
+            padding: 5px 8px;
+            border-radius: 8px;
+            background-color: rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .project-item span {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            background-color: rgba(255,255,255,0.1);
+            gap: 4px;
+        }
+
+        .hint {
+            font-size: 0.73rem;
+            color: #aaa;
+        }
+
+        @media (max-width: 800px) {
+            #controls-container {
+                padding-bottom: 80px;
+            }
+            h1 {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>
+        Image PLUS
+        <span>Thumbnail Studio</span>
+    </h1>
+    <div class="header-right">
+        <select id="ui-language-select" style="font-size:0.75rem;padding:4px 6px;border-radius:999px;border:none;background-color:var(--input-bg);color:var(--text-color);">
+            <option value="ko">KR</option>
+            <option value="en">EN</option>
+        </select>
+        <button class="icon-btn" id="toggle-mode">
+            <img id="toggle-icon" src="https://navercorp.com/img/common/ic-darkmode.svg" alt="Toggle" width="22" height="22">
+        </button>
+        <button class="icon-btn" id="redirect-button">
+            <img src="https://www.svgrepo.com/show/532225/table-layout.svg" alt="Link" width="16" height="16">
+        </button>
+    </div>
+</header>
+
+<section id="canvas-section">
+    <div id="canvas-wrapper">
+        <canvas id="main-canvas" width="1920" height="1080"></canvas>
+    </div>
+    <div id="preview-wrapper">
+        <canvas id="preview-canvas" width="320" height="180"></canvas>
+        <div>
+            <div style="font-weight:600;font-size:0.8rem;">YouTube 미리보기</div>
+            <div class="hint">실제 목록에 보이는 크기 느낌을 확인하세요.</div>
+        </div>
+    </div>
+    <div id="zoom-row">
+        <span class="input-label">뷰 확대</span>
+        <input type="range" id="view-zoom" min="0.5" max="2.0" step="0.05" value="1">
+        <span id="zoom-value" style="font-size:0.75rem;">100%</span>
+    </div>
+    <p class="guide-text">💡 캔버스 위에서 텍스트·로고·도형을 터치/드래그로 이동할 수 있습니다. (두 손가락 핀치로 확대/축소)</p>
+</section>
+
+<section id="controls-container">
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="tab-bg">배경/로고</button>
+        <button class="tab-btn" data-tab="tab-text">텍스트</button>
+        <button class="tab-btn" data-tab="tab-layout">레이아웃/가이드</button>
+        <button class="tab-btn" data-tab="tab-effects">효과/스타일</button>
+        <button class="tab-btn" data-tab="tab-project">프로젝트</button>
+        <button class="tab-btn" data-tab="tab-save">저장</button>
+    </div>
+
+    <!-- 배경 / 로고 -->
+    <div id="tab-bg" class="control-group active">
+        <div class="section">
+            <div class="section-title">
+                <span>배경 이미지</span>
+                <span class="small-tag">Background</span>
+            </div>
+            <div class="input-row">
+                <button class="file-btn" id="bg-upload-btn">📸 배경 이미지 선택</button>
+                <input type="file" id="bg-upload-input" accept="image/*" style="display:none;">
+            </div>
+            <div class="toggle-row">
+                <label>
+                    <input type="checkbox" id="bg-filter-enable" checked>
+                    <span>배경 보정 사용</span>
+                </label>
+            </div>
+            <div class="input-row">
+                <span class="input-label">확대/크롭</span>
+                <input type="range" id="bg-zoom" min="1.0" max="2.5" step="0.01" value="1.0">
+            </div>
+            <div class="input-row">
+                <span class="input-label">좌우 이동</span>
+                <input type="range" id="bg-offset-x" min="-960" max="960" step="1" value="0">
+            </div>
+            <div class="input-row">
+                <span class="input-label">상하 이동</span>
+                <input type="range" id="bg-offset-y" min="-540" max="540" step="1" value="0">
+            </div>
+            <div class="input-row">
+                <span class="input-label">밝기</span>
+                <input type="range" id="bg-brightness" min="-100" max="100" step="1" value="0">
+            </div>
+            <div class="input-row">
+                <span class="input-label">대비</span>
+                <input type="range" id="bg-contrast" min="-100" max="100" step="1" value="0">
+            </div>
+            <div class="input-row">
+                <span class="input-label">블러</span>
+                <input type="range" id="bg-blur" min="0" max="10" step="0.5" value="0">
+            </div>
+            <div class="input-row">
+                <span class="input-label">필터</span>
+                <div class="row">
+                    <button class="pill-btn bg-filter-btn active" data-filter="none">기본</button>
+                    <button class="pill-btn bg-filter-btn" data-filter="bw">흑백</button>
+                    <button class="pill-btn bg-filter-btn" data-filter="warm">따뜻함</button>
+                    <button class="pill-btn bg-filter-btn" data-filter="cool">차가움</button>
+                </div>
+            </div>
+            <div class="toggle-row" style="margin-top:6px;">
+                <label>
+                    <input type="checkbox" id="bg-overlay-enable">
+                    <span>색상 오버레이</span>
+                </label>
+                <input type="color" id="bg-overlay-color" value="#000000" style="width:40px;height:24px;border-radius:6px;border:none;">
+            </div>
+            <div class="input-row">
+                <span class="input-label">오버레이 강도</span>
+                <input type="range" id="bg-overlay-alpha" min="0" max="1" step="0.05" value="0.4">
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">
+                <span>로고 / 아이콘</span>
+                <span class="small-tag">Multiple Logos</span>
+            </div>
+            <div class="input-row">
+                <button class="file-btn" id="logo-upload-btn">🖼️ 로고 추가</button>
+                <input type="file" id="logo-upload-input" accept="image/*" style="display:none;">
+            </div>
+            <div class="hint" style="margin-bottom:6px;">여러 개의 로고를 추가하고, 목록에서 선택해 조정할 수 있습니다.</div>
+            <div class="input-row">
+                <span class="input-label">선택 로고</span>
+                <select id="logo-select">
+                    <option value="">(로고 없음)</option>
+                </select>
+            </div>
+            <div class="toggle-row">
+                <label>
+                    <input type="checkbox" id="logo-visible-toggle" checked>
+                    <span>선택 로고 보이기</span>
+                </label>
+            </div>
+            <div class="input-row">
+                <span class="input-label">크기</span>
+                <input type="range" id="logo-scale" min="0.2" max="3.0" step="0.05" value="1.0">
+            </div>
+            <div class="input-row">
+                <span class="input-label">투명도</span>
+                <input type="range" id="logo-opacity" min="0.1" max="1.0" step="0.05" value="1.0">
+            </div>
+            <div class="input-row">
+                <span class="input-label">코너 위치</span>
+                <div class="row">
+                    <button class="pill-btn logo-pos-btn" data-pos="tl">좌상단</button>
+                    <button class="pill-btn logo-pos-btn" data-pos="tr">우상단</button>
+                    <button class="pill-btn logo-pos-btn" data-pos="bl">좌하단</button>
+                    <button class="pill-btn logo-pos-btn" data-pos="br">우하단</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 텍스트 -->
+    <div id="tab-text" class="control-group">
+        <!-- 메인 텍스트 -->
+        <div class="section">
+            <div class="section-title">
+                <span>하단 메인 텍스트</span>
+                <span class="small-tag">Main Title</span>
+            </div>
+            <div class="toggle-row">
+                <label>
+                    <input type="checkbox" id="main-text-visible" checked>
+                    <span>사용</span>
+                </label>
+                <span class="hint">(r),(g),(b),(y),(k) 태그로 색상 강조 가능</span>
+            </div>
+            <div class="input-row">
+                <span class="input-label">내용</span>
+                <input type="text" id="main-text-input" placeholder="예: (y)한 번에(y) 정리하는 (b)필수 개념(b)">
+            </div>
+            <div class="input-row">
+                <span class="input-label">폰트</span>
+                <select id="main-text-font">
+                    <option value="SBAggroB">SBAggroB</option>
+                    <option value="LINESeedKR-Bd">LINESeedKR</option>
+                    <option value="RiaSans-ExtraBold">RiaSans</option>
+                    <option value="system-ui">System UI</option>
+                </select>
+            </div>
+            <div class="row">
+                <div class="input-row">
+                    <span class="input-label">크기</span>
+                    <input type="range" id="main-text-size" min="80" max="260" step="5" value="180">
+                </div>
+                <div class="input-row">
+                    <span class="input-label">정렬</span>
+                    <select id="main-text-align">
+                        <option value="left">왼쪽</option>
+                        <option value="center">가운데</option>
+                        <option value="right">오른쪽</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-row">
+                    <span class="input-label">줄 간격</span>
+                    <input type="range" id="main-text-lineHeight" min="1.0" max="1.8" step="0.05" value="1.1">
+                </div>
+                <div class="input-row">
+                    <span class="input-label">자간</span>
+                    <input type="range" id="main-text-letterSpacing" min="0" max="40" step="1" value="0">
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-row">
+                    <span class="input-label">외곽선</span>
+                    <input type="range" id="main-text-outline" min="0" max="0.08" step="0.005" value="0.03">
+                </div>
+                <div class="input-row">
+                    <span class="input-label">그림자</span>
+                    <input type="range" id="main-text-shadow" min="0" max="40" step="1" value="10">
+                </div>
+            </div>
+            <div class="toggle-row">
+                <label>
+                    <input type="checkbox" id="main-text-wrap" checked>
+                    <span>자동 줄바꿈</span>
+                </label>
+                <div>
+                    <input type="color" id="main-text-color" value="#ffffff" style="width:40px;height:24px;border-radius:6px;border:none;">
+                </div>
+            </div>
+            <div class="row">
+                <button class="pill-btn main-style-preset" data-preset="whiteOutline">흰+검 외곽</button>
+                <button class="pill-btn main-style-preset" data-preset="yellowBlack">노랑+검</button>
+                <button class="pill-btn main-style-preset" data-preset="redWhite">빨강+흰</button>
+            </div>
+            <div class="row" style="margin-top:6px;">
+                <button class="pill-btn main-color-insert" data-color-tag="(r)">(r)빨강(r)</button>
+                <button class="pill-btn main-color-insert" data-color-tag="(g)">(g)초록(g)</button>
+                <button class="pill-btn main-color-insert" data-color-tag="(b)">(b)파랑(b)</button>
+                <button class="pill-btn main-color-insert" data-color-tag="(y)">(y)노랑(y)</button>
+                <button class="pill-btn main-color-insert" data-color-tag="(k)">(k)검정(k)</button>
+            </div>
+        </div>
+
+        <!-- 상단 서브 텍스트 -->
+        <div class="section">
+            <div class="section-title">
+                <span>우측 상단 텍스트</span>
+                <span class="small-tag">Top Right</span>
+            </div>
+            <div class="toggle-row">
+                <label>
+                    <input type="checkbox" id="sub-text-visible" checked>
+                    <span>사용</span>
+                </label>
+            </div>
+            <div class="input-row">
+                <span class="input-label">내용</span>
+                <input type="text" id="sub-text-input" placeholder="예: 24.03.21">
+            </div>
+            <div class="row">
+                <div class="input-row">
+                    <span class="input-label">폰트</span>
+                    <select id="sub-text-font">
+                        <option value="RiaSans-ExtraBold">RiaSans</option>
+                        <option value="SBAggroB">SBAggroB</option>
+                        <option

@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>유튜브 썸네일 메이커 Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #6200ea;
+            --bg-color: #f3f4f6;
+            --panel-width: 340px;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            color: #333;
+        }
+
+        /* 왼쪽 컨트롤 패널 */
+        .controls {
+            width: var(--panel-width);
+            background: white;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        .control-group { margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        .control-group:last-child { border-bottom: none; }
+        
+        h2 { font-size: 1.2rem; margin-top: 0; color: var(--primary-color); }
+        h3 { font-size: 0.9rem; color: #666; margin-bottom: 8px; }
+
+        label { display: block; margin-bottom: 5px; font-size: 0.85rem; font-weight: bold; }
+        input[type="text"], input[type="file"], select {
+            width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 10px;
+        }
+        input[type="color"] { width: 100%; height: 40px; padding: 0; border: none; cursor: pointer; }
+        input[type="range"] { width: 100%; }
+
+        button.btn-download {
+            background-color: #ff0000; /* 유튜브 레드 */
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 10px;
+        }
+        button.btn-download:hover { background-color: #cc0000; }
+
+        /* 오른쪽 미리보기 영역 */
+        .preview-area {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #333;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        /* 썸네일 캔버스 (16:9 비율 고정) */
+        #thumbnail-canvas {
+            width: 1280px;
+            height: 720px;
+            background-color: #000;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            /* 화면에 맞게 축소해서 보여주기 */
+            transform-origin: center center;
+            user-select: none;
+        }
+
+        #bg-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0; left: 0;
+            opacity: 1;
+        }
+
+        /* 텍스트 요소 공통 스타일 */
+        .draggable-text {
+            position: absolute;
+            font-family: 'Black Han Sans', sans-serif;
+            line-height: 1.2;
+            cursor: move;
+            white-space: pre-wrap;
+            text-align: center;
+            /* 강력한 외곽선 효과 (CSS Shadow Trick) */
+            text-shadow: 
+                3px 3px 0 #000, -1px -1px 0 #000, 
+                1px -1px 0 #000, -1px 1px 0 #000, 
+                1px 1px 0 #000;
+        }
+        
+        .draggable-text:hover {
+            outline: 2px dashed rgba(255, 255, 255, 0.5);
+        }
+
+        /* 기본 텍스트 프리셋 */
+        #text-main {
+            top: 20%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 100px;
+            color: #ffff00; /* 노란색 강조 */
+            z-index: 2;
+        }
+
+        #text-sub {
+            top: 75%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 60px;
+            color: #ffffff;
+            background: rgba(204, 0, 0, 0.9); /* 빨간 배경 박스 */
+            padding: 10px 30px;
+            border-radius: 10px;
+            box-shadow: 5px 5px 0px #000;
+            z-index: 2;
+        }
+
+        /* 오버레이 (배경 어둡게) */
+        #overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: black;
+            opacity: 0.2;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .guide-text {
+            color: #888;
+            font-size: 0.8rem;
+            margin-top: 5px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <h2>🎬 썸네일 메이커</h2>
+        
+        <div class="control-group">
+            <h3>1. 배경 이미지</h3>
+            <input type="file" id="img-upload" accept="image/*">
+            <label>배경 어둡기 (글자 강조)</label>
+            <input type="range" id="overlay-range" min="0" max="0.8" step="0.1" value="0.2">
+        </div>
+
+        <div class="control-group">
+            <h3>2. 메인 타이틀 (큰 글씨)</h3>
+            <input type="text" id="input-main" value="충격! 이것만 알면 끝">
+            <div style="display:flex; gap:5px;">
+                <div style="flex:1;">
+                    <label>글자색</label>
+                    <input type="color" id="color-main" value="#ffff00">
+                </div>
+                <div style="flex:1;">
+                    <label>크기</label>
+                    <input type="number" id="size-main" value="100">
+                </div>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3>3. 서브 타이틀 (박스 글씨)</h3>
+            <input type="text" id="input-sub" value="지금 바로 확인하세요">
+            <div style="display:flex; gap:5px;">
+                <div style="flex:1;">
+                    <label>글자색</label>
+                    <input type="color" id="color-sub" value="#ffffff">
+                </div>
+                <div style="flex:1;">
+                    <label>배경색</label>
+                    <input type="color" id="bg-color-sub" value="#cc0000">
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-download" onclick="downloadThumbnail()">썸네일 다운로드 (JPG)</button>
+        <p class="guide-text">*오른쪽 화면의 글자를 드래그해서 위치를 옮길 수 있습니다.</p>
+    </div>
+
+    <div class="preview-area">
+        <div id="thumbnail-canvas">
+            <img id="bg-image" src="" alt="" style="display:none;">
+            <div id="overlay"></div>
+            
+            <div id="text-main" class="draggable-text">충격! 이것만 알면 끝</div>
+            <div id="text-sub" class="draggable-text">지금 바로 확인하세요</div>
+        </div>
+    </div>
+
+    <script>
+        // 요소 선택
+        const canvas = document.getElementById('thumbnail-canvas');
+        const bgImage = document.getElementById('bg-image');
+        const imgUpload = document.getElementById('img-upload');
+        const overlay = document.getElementById('overlay');
+        const overlayRange = document.getElementById('overlay-range');
+
+        // 1. 이미지 업로드 처리
+        imgUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    bgImage.src = event.target.result;
+                    bgImage.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // 2. 오버레이 조절
+        overlayRange.addEventListener('input', (e) => {
+            overlay.style.opacity = e.target.value;
+        });
+
+        // 3. 텍스트 실시간 수정 함수
+        function bindTextControl(inputId, textId, colorId, sizeId, bgId) {
+            const input = document.getElementById(inputId);
+            const textElement = document.getElementById(textId);
+            const colorInput = document.getElementById(colorId);
+            
+            // 텍스트 내용 변경
+            input.addEventListener('input', () => textElement.innerText = input.value);
+            
+            // 색상 변경
+            if(colorInput) {
+                colorInput.addEventListener('input', () => textElement.style.color = colorInput.value);
+            }
+
+            // 크기 변경 (메인 타이틀용)
+            if(sizeId) {
+                const sizeInput = document.getElementById(sizeId);
+                sizeInput.addEventListener('input', () => textElement.style.fontSize = sizeInput.value + 'px');
+            }
+
+            // 배경색 변경 (서브 타이틀용)
+            if(bgId) {
+                const bgInput = document.getElementById(bgId);
+                bgInput.addEventListener('input', () => textElement.style.backgroundColor = bgInput.value);
+            }
+        }
+
+        bindTextControl('input-main', 'text-main', 'color-main', 'size-main', null);
+        bindTextControl('input-sub', 'text-sub', 'color-sub', null, 'bg-color-sub');
+
+        // 4. 드래그 앤 드롭 기능 (마우스)
+        let isDragging = false;
+        let currentElement = null;
+        let offsetX, offsetY;
+
+        document.querySelectorAll('.draggable-text').forEach(el => {
+            el.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                currentElement = el;
+                // 현재 마우스 위치와 요소 위치의 차이 계산
+                offsetX = e.clientX - el.getBoundingClientRect().left;
+                offsetY = e.clientY - el.getBoundingClientRect().top;
+                el.style.cursor = 'grabbing';
+            });
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging || !currentElement) return;
+            
+            // 캔버스 기준 좌표 계산 (transform scale 고려해야 하지만, 여기서는 단순화)
+            // 캔버스가 화면 중앙에 있으므로 clientX 처리가 까다로움.
+            // 대신 offsetParent 기준으로 % 또는 픽셀 이동 처리
+            
+            // 쉬운 방법: 캔버스 내부 좌표계로 변환
+            const canvasRect = canvas.getBoundingClientRect();
+            const scaleX = 1280 / canvasRect.width;
+            const scaleY = 720 / canvasRect.height;
+
+            let newX = (e.clientX - canvasRect.left - offsetX) * scaleX;
+            let newY = (e.clientY - canvasRect.top - offsetY) * scaleY;
+
+            // transform translate 제거하고 left/top으로만 제어하기 위해 초기화
+            currentElement.style.transform = 'none';
+            currentElement.style.left = newX + 'px';
+            currentElement.style.top = newY + 'px';
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            if (currentElement) currentElement.style.cursor = 'move';
+            currentElement = null;
+        });
+
+        // 5. 화면 크기에 맞춰 미리보기 축소 (반응형)
+        function resizePreview() {
+            const container = document.querySelector('.preview-area');
+            const containerWidth = container.clientWidth - 40;
+            const containerHeight = container.clientHeight - 40;
+            const scale = Math.min(containerWidth / 1280, containerHeight / 720);
+            
+            canvas.style.transform = `scale(${scale})`;
+        }
+        window.addEventListener('resize', resizePreview);
+        resizePreview(); // 초기 실행
+
+        // 6. 다운로드 기능
+        function downloadThumbnail() {
+            // html2canvas를 사용하여 캡처
+            html2canvas(canvas, {
+                width: 1280,
+                height: 720,
+                scale: 1, // 원본 해상도 유지
+                backgroundColor: null,
+                useCORS: true // 로컬 이미지 이슈 방지 노력
+            }).then(capturedCanvas => {
+                const link = document.createElement('a');
+                link.download = 'youtube_thumbnail.jpg';
+                link.href = capturedCanvas.toDataURL('image/jpeg', 0.9);
+                link.click();
+            });
+        }
+    </script>
+</body>
+</html>

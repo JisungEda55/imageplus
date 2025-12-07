@@ -224,6 +224,7 @@
             padding: 16px;
             border-radius: var(--border-radius);
             margin-bottom: 12px;
+            display: none;
             flex-direction: column;
             gap: 12px;
         }
@@ -690,10 +691,6 @@
             <div class="input-row">
                 <span class="input-label">크기</span>
                 <input type="range" id="main-text-size" min="80" max="260" step="5" value="180">
-            </div>
-            <div class="input-row">
-                <span class="input-label">세로 위치</span>
-                <input type="range" id="main-text-y" min="100" max="1030" step="5" value="1004">
             </div>
             <div class="input-row">
                 <span class="input-label">폰트</span>
@@ -1340,4 +1337,1635 @@
         const h = state.history;
         if (h.index <= 0) return;
         h.index--;
-        applyConfigSnapshot(h.stack[h.index
+        applyConfigSnapshot(h.stack[h.index]);
+        updateAutosaveStatus('되돌리기 수행');
+    }
+
+    function redo() {
+        const h = state.history;
+        if (h.index >= h.stack.length - 1) return;
+        h.index++;
+        applyConfigSnapshot(h.stack[h.index]);
+        updateAutosaveStatus('다시하기 수행');
+    }
+
+    // ==========================
+    // LocalStorage (자동 저장/최근)
+    // ==========================
+    const LS_KEY_CURRENT = 'imageplus_current_project_v1';
+    const LS_KEY_RECENT = 'imageplus_recent_projects_v1';
+
+    function saveToLocalStorage() {
+        try {
+            const cfg = getConfigSnapshot();
+            localStorage.setItem(LS_KEY_CURRENT, JSON.stringify(cfg));
+
+            // 자동으로 최근 1개 업데이트는 하지 않고, 사용자가 버튼 누를 때만 recent에 저장
+        } catch (e) {
+            console.warn('localStorage save failed', e);
+        }
+    }
+
+    function loadFromLocalStorage() {
+        try {
+            const raw = localStorage.getItem(LS_KEY_CURRENT);
+            if (!raw) return;
+            const cfg = JSON.parse(raw);
+            applyConfigSnapshot(cfg);
+            updateAutosaveStatus('이전 작업 불러옴');
+        } catch (e) {
+            console.warn('localStorage load failed', e);
+        }
+    }
+
+    function updateAutosaveStatus(msg) {
+        const el = document.getElementById('autosave-status');
+        if (el) el.textContent = '자동 저장: ' + msg;
+    }
+
+    function refreshRecentProjectsUI() {
+        const wrap = document.getElementById('recent-projects');
+        wrap.innerHTML = '';
+        let list = [];
+        try {
+            const raw = localStorage.getItem(LS_KEY_RECENT);
+            if (raw) list = JSON.parse(raw);
+        } catch (e) {}
+
+        list.forEach((item, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'recent-project-btn';
+            const dateLabel = item.savedAt ? new Date(item.savedAt).toLocaleString() : '저장 시점';
+            btn.textContent = `${idx + 1}. ${item.name || '썸네일'} (${dateLabel})`;
+            btn.addEventListener('click', () => {
+                applyConfigSnapshot(item.config);
+                pushHistory();
+            });
+            wrap.appendChild(btn);
+        });
+        if (list.length === 0) {
+            const span = document.createElement('span');
+            span.className = 'project-info';
+            span.textContent = '최근 프로젝트가 없습니다.';
+            wrap.appendChild(span);
+        }
+    }
+
+    function saveCurrentToRecent() {
+        let list = [];
+        try {
+            const raw = localStorage.getItem(LS_KEY_RECENT);
+            if (raw) list = JSON.parse(raw);
+        } catch (e) {}
+
+        const name = prompt('프로젝트 이름을 입력하세요 (예: 수능 영단어 썸네일)', '');
+        const cfg = getConfigSnapshot();
+        list.unshift({ name: name || '썸네일', savedAt: new Date().toISOString(), config: cfg });
+        if (list.length > 3) list = list.slice(0, 3);
+        localStorage.setItem(LS_KEY_RECENT, JSON.stringify(list));
+        refreshRecentProjectsUI();
+    }
+
+    // ==========================
+    // UI 요소 참조
+    // ==========================
+    const bgFileInput = document.getElementById('image-upload');
+    const logoFileInput = document.getElementById('logo-upload');
+    const logoIndexSelect = document.getElementById('logo-index-select');
+
+    // 배경 슬라이더
+    const bgScaleInput = document.getElementById('bg-scale');
+    const bgBrightnessInput = document.getElementById('bg-brightness');
+    const bgContrastInput = document.getElementById('bg-contrast');
+    const bgBlurInput = document.getElementById('bg-blur');
+    const overlayEnabledInput = document.getElementById('overlay-enabled');
+    const overlayColorInput = document.getElementById('overlay-color');
+    const overlayAlphaInput = document.getElementById('overlay-alpha');
+
+    // 로고 관련
+    const logoEnabledInput = document.getElementById('logo-enabled');
+    const logoScaleInput = document.getElementById('logo-scale');
+    const logoOpacityInput = document.getElementById('logo-opacity');
+
+    // 텍스트 입력
+    const mainTextInput = document.getElementById('main-text-input');
+    const subTextInput = document.getElementById('sub-text-input');
+    const extraTextInput = document.getElementById('extra-text-input');
+
+    // 텍스트 옵션
+    const mainTextSizeInput = document.getElementById('main-text-size');
+    const mainTextFontSelect = document.getElementById('main-text-font');
+    const mainTextAlignSelect = document.getElementById('main-text-align');
+    const mainWrapInput = document.getElementById('main-wrap');
+    const mainLineHeightInput = document.getElementById('main-line-height');
+    const mainLetterSpacingInput = document.getElementById('main-letter-spacing');
+    const mainOutlineInput = document.getElementById('main-outline');
+    const mainShadowInput = document.getElementById('main-shadow');
+    const mainCustomColorEnabledInput = document.getElementById('main-custom-color-enabled');
+    const mainCustomColorInput = document.getElementById('main-custom-color');
+
+    const subTextSizeInput = document.getElementById('sub-text-size');
+    const subTextFontSelect = document.getElementById('sub-text-font');
+    const subTextAlignSelect = document.getElementById('sub-text-align');
+    const subOutlineInput = document.getElementById('sub-outline');
+    const subShadowInput = document.getElementById('sub-shadow');
+
+    const extraEnabledInput = document.getElementById('extra-enabled');
+    const extraTextSizeInput = document.getElementById('extra-text-size');
+    const extraTextFontSelect = document.getElementById('extra-text-font');
+    const extraTextAlignSelect = document.getElementById('extra-text-align');
+
+    // 배지/리본
+    const badgeEnabledInput = document.getElementById('badge-enabled');
+    const badgeCategorySelect = document.getElementById('badge-category');
+    const badgeTextInput = document.getElementById('badge-text-input');
+    const badgeBgColorInput = document.getElementById('badge-bg-color');
+    const badgeTextColorInput = document.getElementById('badge-text-color');
+
+    const ribbonEnabledInput = document.getElementById('ribbon-enabled');
+    const ribbonTextInput = document.getElementById('ribbon-text-input');
+    const ribbonColorInput = document.getElementById('ribbon-color');
+
+    // 하단 그라데이션 & 도형
+    const gradientEnabledInput = document.getElementById('gradient-enabled');
+    const gradientHeightInput = document.getElementById('gradient-height');
+    const gradientAlphaInput = document.getElementById('gradient-alpha');
+    const mainBgBoxEnabledInput = document.getElementById('main-bg-box-enabled');
+    const mainBgBoxColorInput = document.getElementById('main-bg-box-color');
+    const mainBgBoxAlphaInput = document.getElementById('main-bg-box-alpha');
+    const mainUnderlineEnabledInput = document.getElementById('main-underline-enabled');
+    const arrowEnabledInput = document.getElementById('arrow-enabled');
+
+    // 가이드
+    const gridEnabledInput = document.getElementById('grid-enabled');
+    const guidesEnabledInput = document.getElementById('guides-enabled');
+    const importantAreaEnabledInput = document.getElementById('important-area-enabled');
+    const snapEnabledInput = document.getElementById('snap-enabled');
+
+    // 레이아웃 템플릿
+    const layoutTemplateSelect = document.getElementById('layout-template-select');
+    const applyTemplateBtn = document.getElementById('apply-template-btn');
+
+    // 선택용 버튼
+    const selectMainTextBtn = document.getElementById('select-main-text');
+    const selectSubTextBtn = document.getElementById('select-sub-text');
+    const selectExtraTextBtn = document.getElementById('select-extra-text');
+    const selectLogo1Btn = document.getElementById('select-logo1');
+
+    // 프로젝트 관련
+    const saveCurrentToRecentBtn = document.getElementById('save-current-to-recent');
+    const resetAllBtn = document.getElementById('reset-all-btn');
+    const exportProjectBtn = document.getElementById('export-project-btn');
+    const importProjectFileInput = document.getElementById('import-project-file');
+
+    // 저장 관련
+    const savePngButton = document.getElementById('save-png-button');
+    const saveJpgButton = document.getElementById('save-jpg-button');
+    const fileSizeWarning = document.getElementById('file-size-warning');
+    const jpgQualityInput = document.getElementById('jpg-quality');
+
+    const langToggleBtn = document.getElementById('lang-toggle');
+    const undoBtn = document.getElementById('undo-btn');
+    const redoBtn = document.getElementById('redo-btn');
+
+    // ==========================
+    // 이미지 로드
+    // ==========================
+    bgFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const img = new Image();
+        img.onload = () => {
+            state.bg.image = img;
+            pushHistory();
+            drawAll();
+        };
+        img.src = URL.createObjectURL(file);
+    });
+
+    logoFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const index = parseInt(logoIndexSelect.value, 10);
+        const img = new Image();
+        img.onload = () => {
+            const logo = state.logos[index];
+            logo.image = img;
+            const maxDim = 300;
+            const aspect = img.width / img.height;
+            if (img.width > maxDim || img.height > maxDim) {
+                if (aspect > 1) {
+                    logo.baseWidth = maxDim;
+                    logo.baseHeight = maxDim / aspect;
+                } else {
+                    logo.baseHeight = maxDim;
+                    logo.baseWidth = maxDim * aspect;
+                }
+            } else {
+                logo.baseWidth = img.width;
+                logo.baseHeight = img.height;
+            }
+            logo.enabled = true;
+            syncUIFromState();
+            pushHistory();
+            drawAll();
+        };
+        img.src = URL.createObjectURL(file);
+    });
+
+    // ==========================
+    // UI → 상태 반영 이벤트
+    // ==========================
+    function addSimpleInputSync(input, handler, useHistory = true) {
+        if (!input) return;
+        input.addEventListener('input', () => {
+            handler(input);
+            if (useHistory) pushHistory();
+            drawAll();
+        });
+    }
+
+    // 배경
+    addSimpleInputSync(bgScaleInput, (el) => state.bg.scale = parseFloat(el.value));
+    addSimpleInputSync(bgBrightnessInput, (el) => state.bg.brightness = parseFloat(el.value));
+    addSimpleInputSync(bgContrastInput, (el) => state.bg.contrast = parseFloat(el.value));
+    addSimpleInputSync(bgBlurInput, (el) => state.bg.blur = parseFloat(el.value));
+    addSimpleInputSync(overlayEnabledInput, (el) => state.bg.overlayEnabled = el.checked);
+    addSimpleInputSync(overlayColorInput, (el) => state.bg.overlayColor = el.value);
+    addSimpleInputSync(overlayAlphaInput, (el) => state.bg.overlayAlpha = parseFloat(el.value));
+
+    document.querySelectorAll('[data-filter]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            state.bg.filter = btn.getAttribute('data-filter');
+            pushHistory();
+            drawAll();
+        });
+    });
+
+    document.querySelectorAll('[data-bg-move]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const [dx, dy] = btn.getAttribute('data-bg-move').split(',').map(Number);
+            state.bg.offsetX += dx;
+            state.bg.offsetY += dy;
+            pushHistory();
+            drawAll();
+        });
+    });
+
+    document.getElementById('bg-reset').addEventListener('click', () => {
+        state.bg.offsetX = 0;
+        state.bg.offsetY = 0;
+        state.bg.scale = 1.0;
+        bgScaleInput.value = '1.0';
+        pushHistory();
+        drawAll();
+    });
+
+    // 로고
+    function syncUIForLogoIndex() {
+        const index = parseInt(logoIndexSelect.value, 10);
+        const logo = state.logos[index];
+        logoEnabledInput.checked = logo.enabled;
+        logoScaleInput.value = logo.scale;
+        logoOpacityInput.value = logo.opacity;
+    }
+
+    logoIndexSelect.addEventListener('change', () => {
+        syncUIForLogoIndex();
+    });
+
+    addSimpleInputSync(logoEnabledInput, (el) => {
+        const idx = parseInt(logoIndexSelect.value, 10);
+        state.logos[idx].enabled = el.checked;
+    });
+    addSimpleInputSync(logoScaleInput, (el) => {
+        const idx = parseInt(logoIndexSelect.value, 10);
+        state.logos[idx].scale = parseFloat(el.value);
+    });
+    addSimpleInputSync(logoOpacityInput, (el) => {
+        const idx = parseInt(logoIndexSelect.value, 10);
+        state.logos[idx].opacity = parseFloat(el.value);
+    });
+
+    document.querySelectorAll('[data-logo-pos]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const idx = parseInt(logoIndexSelect.value, 10);
+            const logo = state.logos[idx];
+            const pos = btn.getAttribute('data-logo-pos');
+            const w = logo.baseWidth * logo.scale;
+            const h = logo.baseHeight * logo.scale;
+            const margin = 40;
+            if (pos === 'lt') {
+                logo.x = margin;
+                logo.y = margin;
+            } else if (pos === 'rt') {
+                logo.x = canvas.width - margin - w;
+                logo.y = margin;
+            } else if (pos === 'lb') {
+                logo.x = margin;
+                logo.y = canvas.height - margin - h;
+            } else if (pos === 'rb') {
+                logo.x = canvas.width - margin - w;
+                logo.y = canvas.height - margin - h;
+            }
+            pushHistory();
+            drawAll();
+        });
+    });
+
+    // 메인 텍스트
+    addSimpleInputSync(mainTextInput, (el) => state.mainText.text = el.value);
+    addSimpleInputSync(mainTextSizeInput, (el) => state.mainText.size = parseInt(el.value, 10));
+    addSimpleInputSync(mainTextFontSelect, (el) => state.mainText.font = el.value);
+    addSimpleInputSync(mainTextAlignSelect, (el) => state.mainText.align = el.value);
+    addSimpleInputSync(mainWrapInput, (el) => state.mainText.wrap = el.checked);
+    addSimpleInputSync(mainLineHeightInput, (el) => state.mainText.lineHeight = parseFloat(el.value));
+    addSimpleInputSync(mainLetterSpacingInput, (el) => state.mainText.letterSpacing = parseFloat(el.value));
+    addSimpleInputSync(mainOutlineInput, (el) => state.mainText.outlineScale = parseFloat(el.value));
+    addSimpleInputSync(mainShadowInput, (el) => state.mainText.shadowBlur = parseFloat(el.value));
+    addSimpleInputSync(mainCustomColorEnabledInput, (el) => state.mainText.customColorEnabled = el.checked);
+    addSimpleInputSync(mainCustomColorInput, (el) => state.mainText.customColor = el.value);
+
+    // 서브 텍스트
+    addSimpleInputSync(subTextInput, (el) => state.subText.text = el.value);
+    addSimpleInputSync(subTextSizeInput, (el) => state.subText.size = parseInt(el.value, 10));
+    addSimpleInputSync(subTextFontSelect, (el) => state.subText.font = el.value);
+    addSimpleInputSync(subTextAlignSelect, (el) => state.subText.align = el.value);
+    addSimpleInputSync(subOutlineInput, (el) => state.subText.outlineScale = parseFloat(el.value));
+    addSimpleInputSync(subShadowInput, (el) => state.subText.shadowBlur = parseFloat(el.value));
+
+    // 추가 텍스트
+    addSimpleInputSync(extraEnabledInput, (el) => state.extraText.enabled = el.checked);
+    addSimpleInputSync(extraTextInput, (el) => state.extraText.text = el.value);
+    addSimpleInputSync(extraTextSizeInput, (el) => state.extraText.size = parseInt(el.value, 10));
+    addSimpleInputSync(extraTextFontSelect, (el) => state.extraText.font = el.value);
+    addSimpleInputSync(extraTextAlignSelect, (el) => state.extraText.align = el.value);
+
+    // 배지/리본
+    addSimpleInputSync(badgeEnabledInput, (el) => state.badge.enabled = el.checked);
+    addSimpleInputSync(badgeCategorySelect, (el) => {
+        state.badge.category = el.value;
+        if (el.value && !badgeTextInput.value) {
+            badgeTextInput.value = el.value;
+            state.badge.text = el.value;
+        }
+    });
+    addSimpleInputSync(badgeTextInput, (el) => state.badge.text = el.value);
+    addSimpleInputSync(badgeBgColorInput, (el) => state.badge.bgColor = el.value);
+    addSimpleInputSync(badgeTextColorInput, (el) => state.badge.textColor = el.value);
+
+    addSimpleInputSync(ribbonEnabledInput, (el) => state.ribbon.enabled = el.checked);
+    addSimpleInputSync(ribbonTextInput, (el) => state.ribbon.text = el.value);
+    addSimpleInputSync(ribbonColorInput, (el) => state.ribbon.color = el.value);
+
+    // 그라데이션/도형
+    addSimpleInputSync(gradientEnabledInput, (el) => state.gradient.enabled = el.checked);
+    addSimpleInputSync(gradientHeightInput, (el) => state.gradient.height = parseInt(el.value, 10));
+    addSimpleInputSync(gradientAlphaInput, (el) => state.gradient.alpha = parseFloat(el.value));
+    addSimpleInputSync(mainBgBoxEnabledInput, (el) => state.mainBgBox.enabled = el.checked);
+    addSimpleInputSync(mainBgBoxColorInput, (el) => state.mainBgBox.color = el.value);
+    addSimpleInputSync(mainBgBoxAlphaInput, (el) => state.mainBgBox.alpha = parseFloat(el.value));
+    addSimpleInputSync(mainUnderlineEnabledInput, (el) => state.underline.mainEnabled = el.checked);
+    addSimpleInputSync(arrowEnabledInput, (el) => state.arrow.enabled = el.checked);
+
+    // 가이드
+    addSimpleInputSync(gridEnabledInput, (el) => state.guides.grid = el.checked);
+    addSimpleInputSync(guidesEnabledInput, (el) => state.guides.guides = el.checked);
+    addSimpleInputSync(importantAreaEnabledInput, (el) => state.guides.importantArea = el.checked);
+    addSimpleInputSync(snapEnabledInput, (el) => state.guides.snap = el.checked);
+
+    // 저장 설정
+    jpgQualityInput.addEventListener('input', () => {
+        state.export.jpgQuality = parseFloat(jpgQualityInput.value);
+        updateAutosaveStatus('JPG 품질 변경');
+        saveToLocalStorage();
+    });
+
+    document.querySelectorAll('input[name="export-res"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            if (radio.checked) {
+                state.export.resolution = parseInt(radio.value, 10);
+                updateAutosaveStatus('출력 해상도 변경');
+                saveToLocalStorage();
+            }
+        });
+    });
+
+    // 텍스트 스타일 프리셋
+    document.querySelectorAll('[data-style-preset]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const preset = btn.getAttribute('data-style-preset');
+            if (preset === 'white-outline') {
+                state.mainText.customColorEnabled = true;
+                state.mainText.customColor = '#ffffff';
+                state.mainText.outlineScale = 0.06;
+                state.mainText.shadowBlur = 14;
+            } else if (preset === 'yellow-black') {
+                state.mainText.customColorEnabled = true;
+                state.mainText.customColor = '#ffdb4d';
+                state.mainText.outlineScale = 0.04;
+                state.mainText.shadowBlur = 20;
+            } else if (preset === 'red-white') {
+                state.mainText.customColorEnabled = true;
+                state.mainText.customColor = '#ff3333';
+                state.mainText.outlineScale = 0.06;
+                state.mainText.shadowBlur = 18;
+            }
+            syncUIFromState();
+            pushHistory();
+            drawAll();
+        });
+    });
+
+    // 아이디어 버튼
+    document.getElementById('idea-btn').addEventListener('click', () => {
+        const pool = ideaPool[state.language] || ideaPool.ko;
+        const text = pool[Math.floor(Math.random() * pool.length)];
+        mainTextInput.value = text;
+        state.mainText.text = text;
+        pushHistory();
+        drawAll();
+    });
+
+    // 레이아웃 템플릿
+    applyTemplateBtn.addEventListener('click', () => {
+        const t = layoutTemplateSelect.value;
+        if (!t) return;
+        const margin = 60;
+        if (t === 'face-left') {
+            state.mainText.x = canvas.width * 0.55;
+            state.mainText.y = canvas.height - 120;
+            state.mainText.align = 'left';
+            state.subText.x = canvas.width - margin;
+            state.subText.y = 130;
+            state.badge.x = margin;
+            state.badge.y = margin + 20;
+        } else if (t === 'face-right') {
+            state.mainText.x = margin;
+            state.mainText.y = canvas.height - 120;
+            state.mainText.align = 'left';
+            state.subText.x = canvas.width * 0.45;
+            state.subText.y = 130;
+            state.badge.x = margin;
+            state.badge.y = margin + 20;
+        } else if (t === 'center-face') {
+            state.mainText.x = canvas.width / 2;
+            state.mainText.y = canvas.height - 140;
+            state.mainText.align = 'center';
+            state.subText.x = canvas.width / 2;
+            state.subText.y = 150;
+            state.badge.x = margin;
+            state.badge.y = margin + 20;
+        } else if (t === 'no-face-text-only') {
+            state.mainText.x = margin;
+            state.mainText.y = canvas.height - 160;
+            state.mainText.align = 'left';
+            state.subText.x = canvas.width - margin;
+            state.subText.y = 160;
+            state.badge.x = margin;
+            state.badge.y = margin + 20;
+        }
+        syncUIFromState();
+        pushHistory();
+        drawAll();
+    });
+
+    // 요소 선택 버튼
+    selectMainTextBtn.addEventListener('click', () => {
+        state.activeElement = { type: 'mainText' };
+        drawAll();
+    });
+    selectSubTextBtn.addEventListener('click', () => {
+        state.activeElement = { type: 'subText' };
+        drawAll();
+    });
+    selectExtraTextBtn.addEventListener('click', () => {
+        state.activeElement = { type: 'extraText' };
+        drawAll();
+    });
+    selectLogo1Btn.addEventListener('click', () => {
+        state.activeElement = { type: 'logo', index: 0 };
+        drawAll();
+    });
+
+    // 프로젝트 관련
+    saveCurrentToRecentBtn.addEventListener('click', () => {
+        saveCurrentToRecent();
+    });
+
+    resetAllBtn.addEventListener('click', () => {
+        if (!confirm('모든 설정을 초기화할까요? (이미지 자체는 유지됩니다)')) return;
+        const keepBg = state.bg.image;
+        const logosImg = state.logos.map(l => l.image);
+        Object.assign(state, JSON.parse(JSON.stringify({
+            language: 'ko',
+            bg: {
+                image: null,
+                brightness: 1.0,
+                contrast: 1.0,
+                blur: 0,
+                scale: 1.0,
+                offsetX: 0,
+                offsetY: 0,
+                filter: 'none',
+                overlayEnabled: false,
+                overlayColor: '#000000',
+                overlayAlpha: 0.4
+            },
+            gradient: { enabled: true, height: 260, alpha: 0.75 },
+            mainText: {
+                enabled: true,
+                text: '',
+                x: 60,
+                y: 1004,
+                size: 180,
+                font: 'SBAggroB',
+                align: 'left',
+                wrap: true,
+                lineHeight: 1.1,
+                letterSpacing: 0,
+                outlineScale: 0.04,
+                shadowBlur: 18,
+                customColorEnabled: false,
+                customColor: '#ffffff'
+            },
+            subText: {
+                enabled: true,
+                text: '',
+                x: canvas.width - 60,
+                y: 120,
+                size: 90,
+                font: 'RiaSans-ExtraBold',
+                align: 'right',
+                outlineScale: 0.03,
+                shadowBlur: 12
+            },
+            extraText: {
+                enabled: false,
+                text: '',
+                x: canvas.width / 2,
+                y = canvas.height / 2,
+                size: 70,
+                font: 'LINESeedKR-Bd',
+                align: 'center'
+            },
+            badge: {
+                enabled: true,
+                text: '',
+                category: '',
+                x: 60,
+                y: 70,
+                bgColor: '#ff4757',
+                textColor: '#ffffff'
+            },
+            ribbon: {
+                enabled: false,
+                text: '',
+                color: '#ffa502'
+            },
+            mainBgBox: {
+                enabled: false,
+                color: '#000000',
+                alpha: 0.4
+            },
+            underline: { mainEnabled: false },
+            arrow: { enabled: false },
+            guides: {
+                grid: false,
+                guides: false,
+                importantArea: false,
+                snap: true
+            },
+            logos: [
+                { image: null, x: 40, y: 40, baseWidth: 0, baseHeight: 0, scale: 1.0, opacity: 1.0, enabled: false },
+                { image: null, x: 40, y: 40, baseWidth: 0, baseHeight: 0, scale: 1.0, opacity: 1.0, enabled: false },
+                { image: null, x: 40, y: 40, baseWidth: 0, baseHeight: 0, scale: 1.0, opacity: 1.0, enabled: false }
+            ],
+            activeElement: null,
+            dragging: null,
+            dragOffset: { x: 0, y: 0 },
+            export: {
+                resolution: 1080,
+                jpgQuality: 0.8
+            },
+            history: { stack: [], index: -1 }
+        })));
+
+        // 이미지만 복원
+        state.bg.image = keepBg;
+        logosImg.forEach((img, i) => {
+            if (img) state.logos[i].image = img;
+        });
+
+        // 서브텍스트 날짜 다시 세팅
+        state.subText.text = `${today.getFullYear().toString().slice(2)}.${(today.getMonth() + 1).toString().padStart(2, '0')}.${today.getDate().toString().padStart(2, '0')}`;
+
+        syncUIFromState();
+        pushHistory();
+        drawAll();
+    });
+
+    exportProjectBtn.addEventListener('click', () => {
+        const cfg = getConfigSnapshot();
+        const blob = new Blob([JSON.stringify(cfg, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        const now = new Date();
+        const timeString = `${now.getFullYear().toString().slice(2)}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}`;
+        a.download = `imageplus_project_${timeString}.json`;
+        a.click();
+    });
+
+    importProjectFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            try {
+                const cfg = JSON.parse(ev.target.result);
+                applyConfigSnapshot(cfg);
+                pushHistory();
+                drawAll();
+                alert('프로젝트 설정을 불러왔습니다.');
+            } catch (err) {
+                alert('JSON 형식이 올바르지 않습니다.');
+            }
+        };
+        reader.readAsText(file, 'utf-8');
+    });
+
+    // 언어 토글
+    langToggleBtn.addEventListener('click', () => {
+        state.language = state.language === 'ko' ? 'en' : 'ko';
+        langToggleBtn.textContent = state.language === 'ko' ? 'KR' : 'EN';
+        pushHistory();
+        drawAll();
+    });
+
+    // Undo/Redo 버튼
+    undoBtn.addEventListener('click', () => undo());
+    redoBtn.addEventListener('click', () => redo());
+
+    // ==========================
+    // 드래그 & 히트 테스트
+    // ==========================
+    function getPointerPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+
+        let clientX = e.clientX;
+        let clientY = e.clientY;
+
+        if (e.touches && e.touches.length > 0) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        }
+
+        return {
+            x: (clientX - rect.left) * scaleX,
+            y: (clientY - rect.top) * scaleY
+        };
+    }
+
+    function hitTestLogo(pos) {
+        for (let i = state.logos.length - 1; i >= 0; i--) {
+            const logo = state.logos[i];
+            if (!logo.enabled || !logo.image) continue;
+            const w = logo.baseWidth * logo.scale;
+            const h = logo.baseHeight * logo.scale;
+            if (pos.x >= logo.x && pos.x <= logo.x + w &&
+                pos.y >= logo.y && pos.y <= logo.y + h) {
+                return { type: 'logo', index: i };
+            }
+        }
+        return null;
+    }
+
+    function measureTextWidthForLayer(layer, text) {
+        ctx.font = `bold ${layer.size}px ${layer.font}`;
+        return ctx.measureText(text).width;
+    }
+
+    function hitTestMainText(pos) {
+        if (!state.mainText.text) return null;
+        const size = state.mainText.size;
+        const x = state.mainText.x;
+        const y = state.mainText.y;
+        const w = canvas.width;
+        const h = size * 1.4;
+        if (pos.y <= y && pos.y >= y - h &&
+            pos.x >= x - 50 && pos.x <= x + w) {
+            return { type: 'mainText' };
+        }
+        return null;
+    }
+
+    function hitTestSubText(pos) {
+        if (!state.subText.text) return null;
+        const size = state.subText.size;
+        const x = state.subText.x;
+        const y = state.subText.y;
+        const h = size * 1.4;
+        if (pos.y <= y && pos.y >= y - h &&
+            pos.x >= x - 400 && pos.x <= x + 400) {
+            return { type: 'subText' };
+        }
+        return null;
+    }
+
+    function hitTestExtraText(pos) {
+        if (!state.extraText.enabled || !state.extraText.text) return null;
+        const size = state.extraText.size;
+        const x = state.extraText.x;
+        const y = state.extraText.y;
+        const h = size * 1.4;
+        if (pos.y <= y && pos.y >= y - h &&
+            pos.x >= x - 400 && pos.x <= x + 400) {
+            return { type: 'extraText' };
+        }
+        return null;
+    }
+
+    function handlePointerStart(e) {
+        const pos = getPointerPos(e);
+
+        // 로고 우선
+        let hit = hitTestLogo(pos);
+        if (!hit) hit = hitTestMainText(pos);
+        if (!hit) hit = hitTestSubText(pos);
+        if (!hit) hit = hitTestExtraText(pos);
+
+        if (hit) {
+            state.dragging = hit;
+            state.activeElement = hit;
+
+            if (hit.type === 'logo') {
+                const logo = state.logos[hit.index];
+                state.dragOffset.x = pos.x - logo.x;
+                state.dragOffset.y = pos.y - logo.y;
+            } else if (hit.type === 'mainText') {
+                state.dragOffset.x = pos.x - state.mainText.x;
+                state.dragOffset.y = pos.y - state.mainText.y;
+            } else if (hit.type === 'subText') {
+                state.dragOffset.x = pos.x - state.subText.x;
+                state.dragOffset.y = pos.y - state.subText.y;
+            } else if (hit.type === 'extraText') {
+                state.dragOffset.x = pos.x - state.extraText.x;
+                state.dragOffset.y = pos.y - state.extraText.y;
+            }
+
+            drawAll();
+        }
+    }
+
+    function handlePointerMove(e) {
+        if (!state.dragging) return;
+        e.preventDefault();
+        const pos = getPointerPos(e);
+
+        const snapDist = 20;
+        const margin = 60;
+
+        if (state.dragging.type === 'logo') {
+            const logo = state.logos[state.dragging.index];
+            logo.x = pos.x - state.dragOffset.x;
+            logo.y = pos.y - state.dragOffset.y;
+            if (state.guides.snap) {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const w = logo.baseWidth * logo.scale;
+                const h = logo.baseHeight * logo.scale;
+
+                const cx = logo.x + w / 2;
+                const cy = logo.y + h / 2;
+
+                if (Math.abs(cx - centerX) < snapDist) {
+                    logo.x = centerX - w / 2;
+                }
+                if (Math.abs(cy - centerY) < snapDist) {
+                    logo.y = centerY - h / 2;
+                }
+            }
+        } else if (state.dragging.type === 'mainText') {
+            state.mainText.x = pos.x - state.dragOffset.x;
+            state.mainText.y = pos.y - state.dragOffset.y;
+
+            if (state.guides.snap) {
+                const centerX = canvas.width / 2;
+                const bottomY = canvas.height - margin;
+                const size = state.mainText.size;
+
+                if (Math.abs(state.mainText.y - bottomY) < snapDist) {
+                    state.mainText.y = bottomY;
+                }
+                const textWidth = measureTextWidthForLayer(state.mainText, state.mainText.text.replace(/\(.\)/g, ''));
+                const centerOfText = state.mainText.x + textWidth / 2;
+                if (Math.abs(centerOfText - centerX) < snapDist) {
+                    state.mainText.x = centerX - textWidth / 2;
+                }
+            }
+        } else if (state.dragging.type === 'subText') {
+            state.subText.x = pos.x - state.dragOffset.x;
+            state.subText.y = pos.y - state.dragOffset.y;
+        } else if (state.dragging.type === 'extraText') {
+            state.extraText.x = pos.x - state.dragOffset.x;
+            state.extraText.y = pos.y - state.dragOffset.y;
+
+            if (state.guides.snap) {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                if (Math.abs(state.extraText.x - centerX) < snapDist) {
+                    state.extraText.x = centerX;
+                }
+                if (Math.abs(state.extraText.y - centerY) < snapDist) {
+                    state.extraText.y = centerY;
+                }
+            }
+        }
+
+        drawAll();
+    }
+
+    function handlePointerEnd() {
+        if (state.dragging) {
+            pushHistory();
+        }
+        state.dragging = null;
+    }
+
+    canvas.addEventListener('mousedown', handlePointerStart);
+    canvas.addEventListener('mousemove', handlePointerMove);
+    window.addEventListener('mouseup', handlePointerEnd);
+
+    canvas.addEventListener('touchstart', handlePointerStart, { passive: false });
+    canvas.addEventListener('touchmove', handlePointerMove, { passive: false });
+    window.addEventListener('touchend', handlePointerEnd);
+
+    // ==========================
+    // 키보드 단축키
+    // ==========================
+    window.addEventListener('keydown', (e) => {
+        // Undo/Redo
+        if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
+            e.preventDefault();
+            undo();
+            return;
+        }
+        if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'z') {
+            e.preventDefault();
+            redo();
+            return;
+        }
+
+        // 방향키 이동
+        if (!state.activeElement) return;
+        let moved = false;
+        const step = e.shiftKey ? 10 : 3;
+
+        const target = state.activeElement;
+        let obj = null;
+        if (target.type === 'mainText') obj = state.mainText;
+        else if (target.type === 'subText') obj = state.subText;
+        else if (target.type === 'extraText') obj = state.extraText;
+        else if (target.type === 'logo') obj = state.logos[target.index];
+
+        if (!obj) return;
+
+        if (e.key === 'ArrowLeft') {
+            obj.x -= step; moved = true;
+        } else if (e.key === 'ArrowRight') {
+            obj.x += step; moved = true;
+        } else if (e.key === 'ArrowUp') {
+            obj.y -= step; moved = true;
+        } else if (e.key === 'ArrowDown') {
+            obj.y += step; moved = true;
+        }
+
+        if (moved) {
+            e.preventDefault();
+            drawAll();
+            pushHistory();
+        }
+    });
+
+    // ==========================
+    // 그리기 로직
+    // ==========================
+    function applyBgFilter() {
+        let filter = `brightness(${state.bg.brightness}) contrast(${state.bg.contrast}) blur(${state.bg.blur}px)`;
+        if (state.bg.filter === 'bw') {
+            filter += ' grayscale(1)';
+        } else if (state.bg.filter === 'warm') {
+            filter += ' sepia(0.2) saturate(1.1)';
+        } else if (state.bg.filter === 'cool') {
+            filter += ' hue-rotate(180deg) saturate(0.9)';
+        }
+        ctx.filter = filter;
+    }
+
+    function drawBackground() {
+        ctx.save();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        if (state.bg.image) {
+            applyBgFilter();
+            const img = state.bg.image;
+            const bw = img.width * state.bg.scale;
+            const bh = img.height * state.bg.scale;
+            const x = (canvas.width - bw) / 2 + state.bg.offsetX;
+            const y = (canvas.height - bh) / 2 + state.bg.offsetY;
+            ctx.drawImage(img, x, y, bw, bh);
+            ctx.filter = 'none';
+        } else {
+            ctx.fillStyle = '#333';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.font = 'bold 100px sans-serif';
+            ctx.fillStyle = '#555';
+            ctx.textAlign = 'center';
+            ctx.fillText('이미지를 추가하세요', canvas.width / 2, canvas.height / 2);
+        }
+
+        if (state.bg.overlayEnabled) {
+            ctx.fillStyle = hexToRgba(state.bg.overlayColor, state.bg.overlayAlpha);
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        ctx.restore();
+    }
+
+    function drawGradient() {
+        if (!state.gradient.enabled) return;
+        const h = state.gradient.height;
+        const alpha = state.gradient.alpha;
+        const yStart = canvas.height - h;
+
+        const grd = ctx.createLinearGradient(0, yStart, 0, canvas.height);
+        grd.addColorStop(0, `rgba(0,0,0,0)`);
+        grd.addColorStop(1, `rgba(0,0,0,${alpha})`);
+        ctx.fillStyle = grd;
+        ctx.fillRect(0, yStart, canvas.width, h);
+    }
+
+    function drawGuides() {
+        const margin = 60;
+        if (state.guides.grid) {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+            ctx.lineWidth = 1;
+
+            // 3x3
+            const v1 = canvas.width / 3;
+            const v2 = (canvas.width / 3) * 2;
+            const h1 = canvas.height / 3;
+            const h2 = (canvas.height / 3) * 2;
+
+            ctx.beginPath();
+            ctx.moveTo(v1, 0); ctx.lineTo(v1, canvas.height);
+            ctx.moveTo(v2, 0); ctx.lineTo(v2, canvas.height);
+            ctx.moveTo(0, h1); ctx.lineTo(canvas.width, h1);
+            ctx.moveTo(0, h2); ctx.lineTo(canvas.width, h2);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        if (state.guides.guides) {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(0,255,163,0.35)';
+            ctx.lineWidth = 1;
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            ctx.beginPath();
+            ctx.moveTo(centerX, 0); ctx.lineTo(centerX, canvas.height);
+            ctx.moveTo(0, centerY); ctx.lineTo(canvas.width, centerY);
+            ctx.stroke();
+
+            // 여백
+            ctx.setLineDash([8, 6]);
+            ctx.beginPath();
+            ctx.rect(60, 60, canvas.width - 120, canvas.height - 120);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.restore();
+        }
+
+        if (state.guides.importantArea) {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255,215,0,0.6)';
+            ctx.lineWidth = 2;
+            const w = canvas.width * 0.35;
+            const h = canvas.height * 0.6;
+            const x = (canvas.width - w) / 2;
+            const y = (canvas.height - h) / 2;
+            ctx.strokeRect(x, y, w, h);
+            ctx.restore();
+        }
+    }
+
+    function hexToRgba(hex, alpha) {
+        const c = hex.replace('#', '');
+        const bigint = parseInt(c, 16);
+        const r = (bigint >> 16) & 255;
+        const g = (bigint >> 8) & 255;
+        const b = bigint & 255;
+        return `rgba(${r},${g},${b},${alpha})`;
+    }
+
+    function parseColorSegments(text) {
+        // (r)xxx(r) 등을 세그먼트로 파싱
+        const regex = /(\(r\).*?\(r\)|\(g\).*?\(g\)|\(b\).*?\(b\)|\(y\).*?\(y\)|\(k\).*?\(k\))/;
+        const result = [];
+        let remaining = text;
+        while (remaining.length > 0) {
+            const m = remaining.match(regex);
+            if (!m) {
+                result.push({ text: remaining, color: null });
+                break;
+            }
+            const idx = m.index;
+            if (idx > 0) {
+                result.push({ text: remaining.slice(0, idx), color: null });
+            }
+            const token = m[0];
+            const inner = token.slice(3, -3);
+            let color = '#ffffff';
+            if (token.startsWith('(r)')) color = '#ff0000';
+            else if (token.startsWith('(g)')) color = '#00ffa3';
+            else if (token.startsWith('(b)')) color = '#153cff';
+            else if (token.startsWith('(y)')) color = '#ffdb4d';
+            else if (token.startsWith('(k)')) color = '#111111';
+
+            result.push({ text: inner, color });
+            remaining = remaining.slice(idx + token.length);
+        }
+        return result;
+    }
+
+    function drawTextLayer(layer, options = {}) {
+        if (!layer.enabled || !layer.text) return;
+
+        const {
+            isMain = false,
+            customColorEnabled = false,
+            customColor = '#ffffff',
+            outlineScale = 0.04,
+            shadowBlur = 12,
+            wrap = false,
+            lineHeight = 1.1,
+            letterSpacing = 0
+        } = options;
+
+        ctx.save();
+
+        const fontFamily = layer.font || 'sans-serif';
+        ctx.font = `bold ${layer.size}px ${fontFamily}`;
+        ctx.textBaseline = 'alphabetic';
+
+        let segments = parseColorSegments(layer.text);
+
+        // wrap 처리
+        const maxWidth = wrap ? canvas.width * 0.9 : null;
+        const lines = [];
+        if (wrap && maxWidth) {
+            let currentLine = [];
+            let currentWidth = 0;
+            segments.forEach(seg => {
+                const words = seg.text.split(/(\s+)/);
+                words.forEach(w => {
+                    if (!w) return;
+                    const segClone = { text: w, color: seg.color };
+                    const width = ctx.measureText(segClone.text).width;
+                    if (currentWidth + width > maxWidth && currentLine.length > 0) {
+                        lines.push(currentLine);
+                        currentLine = [segClone];
+                        currentWidth = width;
+                    } else {
+                        currentLine.push(segClone);
+                        currentWidth += width;
+                    }
+                });
+            });
+            if (currentLine.length > 0) lines.push(currentLine);
+        } else {
+            lines.push(segments);
+        }
+
+        let x = layer.x;
+        let y = layer.y;
+
+        lines.forEach((lineSegs, lineIndex) => {
+            // line width 계산
+            let lineWidth = 0;
+            lineSegs.forEach(seg => {
+                lineWidth += ctx.measureText(seg.text).width;
+            });
+
+            let drawX = x;
+            if (layer.align === 'center') {
+                drawX = x - lineWidth / 2;
+            } else if (layer.align === 'right') {
+                drawX = x - lineWidth;
+            }
+
+            // 메인텍스트 배경 박스용 좌표 저장
+            if (isMain && lineIndex === lines.length - 1) {
+                layer._lastLineWidth = lineWidth;
+                layer._lastLineX = drawX;
+                layer._lastLineY = y;
+            }
+
+            // 그림자
+            ctx.shadowColor = 'rgba(0,0,0,0.85)';
+            ctx.shadowBlur = shadowBlur;
+
+            // 한 글자씩 렌더링 (letterSpacing용)
+            lineSegs.forEach(seg => {
+                const color = customColorEnabled ? customColor : (seg.color || '#ffffff');
+                ctx.fillStyle = color;
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = layer.size * outlineScale;
+
+                const text = seg.text;
+                for (let i = 0; i < text.length; i++) {
+                    const ch = text[i];
+                    ctx.strokeText(ch, drawX, y);
+                    ctx.fillText(ch, drawX, y);
+                    const cw = ctx.measureText(ch).width + letterSpacing;
+                    drawX += cw;
+                }
+            });
+
+            y += layer.size * lineHeight;
+        });
+
+        ctx.restore();
+    }
+
+    function drawMainBgBox() {
+        if (!state.mainBgBox.enabled || !state.mainText.text || typeof state.mainText._lastLineWidth === 'undefined') return;
+
+        const paddingX = 20;
+        const paddingY = 20;
+        const x = state.mainText._lastLineX - paddingX;
+        const y = state.mainText._lastLineY - state.mainText.size - paddingY / 2;
+        const w = state.mainText._lastLineWidth + paddingX * 2;
+        const h = state.mainText.size + paddingY;
+
+        ctx.save();
+        ctx.fillStyle = hexToRgba(state.mainBgBox.color, state.mainBgBox.alpha);
+        ctx.fillRect(x, y, w, h);
+        ctx.restore();
+    }
+
+    function drawUnderlineForMain() {
+        if (!state.underline.mainEnabled || !state.mainText.text || typeof state.mainText._lastLineWidth === 'undefined') return;
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+        ctx.lineWidth = 6;
+        const padding = 10;
+        const x1 = state.mainText._lastLineX;
+        const x2 = state.mainText._lastLineX + state.mainText._lastLineWidth;
+        const y = state.mainText._lastLineY + padding;
+        ctx.beginPath();
+        ctx.moveTo(x1, y);
+        ctx.lineTo(x2, y);
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    function drawArrow() {
+        if (!state.arrow.enabled) return;
+        ctx.save();
+        ctx.fillStyle = '#ff4757';
+        ctx.strokeStyle = '#ff4757';
+        ctx.lineWidth = 4;
+
+        const startX = canvas.width * 0.7;
+        const startY = canvas.height * 0.15;
+        const endX = canvas.width * 0.55;
+        const endY = canvas.height * 0.3;
+
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+
+        const angle = Math.atan2(endY - startY, endX - startX);
+        const headLen = 30;
+        ctx.beginPath();
+        ctx.moveTo(endX, endY);
+        ctx.lineTo(endX - headLen * Math.cos(angle - Math.PI / 6), endY - headLen * Math.sin(angle - Math.PI / 6));
+        ctx.lineTo(endX - headLen * Math.cos(angle + Math.PI / 6), endY - headLen * Math.sin(angle + Math.PI / 6));
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.restore();
+    }
+
+    function drawLogos() {
+        state.logos.forEach((logo, idx) => {
+            if (!logo.enabled || !logo.image) return;
+            const w = logo.baseWidth * logo.scale;
+            const h = logo.baseHeight * logo.scale;
+            ctx.save();
+            ctx.globalAlpha = logo.opacity;
+            ctx.drawImage(logo.image, logo.x, logo.y, w, h);
+
+            if (state.activeElement && state.activeElement.type === 'logo' && state.activeElement.index === idx) {
+                ctx.strokeStyle = '#00ffa3';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(logo.x, logo.y, w, h);
+            }
+            ctx.restore();
+        });
+    }
+
+    function drawBadge() {
+        if (!state.badge.enabled) return;
+        const text = state.badge.text || state.badge.category;
+        if (!text) return;
+        ctx.save();
+        ctx.font = 'bold 42px RiaSans-ExtraBold';
+        const padX = 26;
+        const padY = 14;
+        const textWidth = ctx.measureText(text).width;
+        const x = state.badge.x;
+        const y = state.badge.y;
+
+        const w = textWidth + padX * 2;
+        const h = 52 + padY;
+        const r = 26;
+
+        // 둥근 사각형
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+
+        ctx.fillStyle = state.badge.bgColor;
+        ctx.fill();
+        ctx.fillStyle = state.badge.textColor;
+        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'left';
+        ctx.fillText(text, x + padX, y + h / 2 + 4);
+        ctx.restore();
+    }
+
+    function drawRibbon() {
+        if (!state.ribbon.enabled || !state.ribbon.text) return;
+        ctx.save();
+        const text = state.ribbon.text;
+        const fontSize = 42;
+        ctx.font = `bold ${fontSize}px RiaSans-ExtraBold`;
+        const textWidth = ctx.measureText(text).width;
+        const width = textWidth + 40;
+        const height = 70;
+        const x = canvas.width - width;
+        const y = 0;
+
+        // 리본
+        ctx.fillStyle = state.ribbon.color;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.lineTo(canvas.width, y + height);
+        ctx.lineTo(x + width * 0.2, y + height);
+        ctx.lineTo(x, y + height * 0.6);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, x + width * 0.6, y + height / 2 + 4);
+        ctx.restore();
+    }
+
+    function drawActiveOutline() {
+        if (!state.activeElement) return;
+        ctx.save();
+        ctx.strokeStyle = 'rgba(0,255,163,0.8)';
+        ctx.lineWidth = 3;
+
+        if (state.activeElement.type === 'mainText' && state.mainText.text) {
+            const size = state.mainText.size;
+            const x = state.mainText.x - 20;
+            const y = state.mainText.y - size * 1.2;
+            const w = canvas.width * 0.8;
+            const h = size * 1.6;
+            ctx.strokeRect(x, y, w, h);
+        } else if (state.activeElement.type === 'subText' && state.subText.text) {
+            const size = state.subText.size;
+            const x = state.subText.x - 200;
+            const y = state.subText.y - size * 1.2;
+            const w = 400;
+            const h = size * 1.6;
+            ctx.strokeRect(x, y, w, h);
+        } else if (state.activeElement.type === 'extraText' && state.extraText.text) {
+            const size = state.extraText.size;
+            const x = state.extraText.x - 200;
+            const y = state.extraText.y - size * 1.2;
+            const w = 400;
+            const h = size * 1.6;
+            ctx.strokeRect(x, y, w, h);
+        }
+
+        ctx.restore();
+    }
+
+    function drawAll() {
+        drawBackground();
+        drawGradient();
+        drawGuides();
+        drawLogos();
+
+        // 메인 텍스트 배경박스는 텍스트보다 앞에 그리면 안 되므로
+        // 일단 텍스트를 그리면서 위치 계산 후 다시 호출
+        // 순서: 메인 배경 박스 -> 메인 텍스트 -> 서브/추가 -> 배지/리본/화살표 등
+
+        // 먼저 텍스트 위치 계산을 위해 텍스트부터 그렸다가, 배경 박스를 뒤에서 다시 그려도 되지만
+        // 간단히: 메인 텍스트를 먼저 그리고 나서 그 위에 박스를 얹지 않게끔
+        // 아래 순서처럼: 박스 → 텍스트 순서로 호출하되,
+        // 박스 그리기에서 사용하는 좌표는 이전 drawTextLayer에서 설정된 내부값을 사용.
+
+        // 1) 메인 텍스트를 일단 그려서 내부 좌표정보 업데이트
+        drawTextLayer(state.mainText, {
+            isMain: true,
+            customColorEnabled: state.mainText.customColorEnabled,
+            customColor: state.mainText.customColor,
+            outlineScale: state.mainText.outlineScale,
+            shadowBlur: state.mainText.shadowBlur,
+            wrap: state.mainText.wrap,
+            lineHeight: state.mainText.lineHeight,
+            letterSpacing: state.mainText.letterSpacing
+        });
+
+        // 2) 메인 텍스트 배경 박스 & 밑줄
+        drawMainBgBox();
+        drawUnderlineForMain();
+
+        // 3) 다시 한 번 메인 텍스트 위에 얹기 (박스 위에 글자)
+        drawTextLayer(state.mainText, {
+            isMain: true,
+            customColorEnabled: state.mainText.customColorEnabled,
+            customColor: state.mainText.customColor,
+            outlineScale: state.mainText.outlineScale,
+            shadowBlur: state.mainText.shadowBlur,
+            wrap: state.mainText.wrap,
+            lineHeight: state.mainText.lineHeight,
+            letterSpacing: state.mainText.letterSpacing
+        });
+
+        // 서브/추가 텍스트
+        drawTextLayer(state.subText, {
+            isMain: false,
+            customColorEnabled: false,
+            outlineScale: state.subText.outlineScale,
+            shadowBlur: state.subText.shadowBlur,
+            wrap: false,
+            lineHeight: 1.0,
+            letterSpacing: 0
+        });
+
+        drawTextLayer(state.extraText, {
+            isMain: false,
+            customColorEnabled: false,
+            outlineScale: 0.03,
+            shadowBlur: 14,
+            wrap: false,
+            lineHeight: 1.0,
+            letterSpacing: 0
+        });
+
+        // 배지/리본/화살표
+        drawBadge();
+        drawRibbon();
+        drawArrow();
+
+        // 활성 요소 표시
+        drawActiveOutline();
+
+        // 미리보기
+        drawPreview();
+    }
+
+    function drawPreview() {
+        pctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+        pctx.drawImage(canvas, 0, 0, previewCanvas.width, previewCanvas.height);
+    }
+
+    // ==========================
+    // UI 상태와 동기화
+    // ==========================
+    function syncUIFromState() {
+        // 배경
+        bgScaleInput.value = state.bg.scale;
+        bgBrightnessInput.value = state.bg.brightness;
+        bgContrastInput.value = state.bg.contrast;
+        bgBlurInput.value = state.bg.blur;
+        overlayEnabledInput.checked = state.bg.overlayEnabled;
+        overlayColorInput.value = state.bg.overlayColor;
+        overlayAlphaInput.value = state.bg.overlayAlpha;
+
+        // 로고
+        syncUIForLogoIndex();
+
+        // 텍스트
+        mainTextInput.value = state.mainText.text;
+        mainTextSizeInput.value = state.mainText.size;
+        mainTextFontSelect.value = state.mainText.font;
+        mainTextAlignSelect.value = state.mainText.align;
+        mainWrapInput.checked = state.mainText.wrap;
+        mainLineHeightInput.value = state.mainText.lineHeight;
+        mainLetterSpacingInput.value = state.mainText.letterSpacing;
+        mainOutlineInput.value = state.mainText.outlineScale;
+        mainShadowInput.value = state.mainText.shadowBlur;
+        mainCustomColorEnabledInput.checked = state.mainText.customColorEnabled;
+        mainCustomColorInput.value = state.mainText.customColor;
+
+        subTextInput.value = state.subText.text;
+        subTextSizeInput.value = state.subText.size;
+        subTextFontSelect.value = state.subText.font;
+        subTextAlignSelect.value = state.subText.align;
+        subOutlineInput.value = state.subText.outlineScale;
+        subShadowInput.value = state.subText.shadowBlur;
+
+        extraEnabledInput.checked = state.extraText.enabled;
+        extraTextInput.value = state.extraText.text;
+        extraTextSizeInput.value = state.extraText.size;
+        extraTextFontSelect.value = state.extraText.font;
+        extraTextAlignSelect.value = state.extraText.align;
+
+        // 배지/리본
+        badgeEnabledInput.checked = state.badge.enabled;
+        badgeCategorySelect.value = state.badge.category;
+        badgeTextInput.value = state.badge.text;
+        badgeBgColorInput.value = state.badge.bgColor;
+        badgeTextColorInput.value = state.badge.textColor;
+
+        ribbonEnabledInput.checked = state.ribbon.enabled;
+        ribbonTextInput.value = state.ribbon.text;
+        ribbonColorInput.value = state.ribbon.color;
+
+        // 그라데이션 등
+        gradientEnabledInput.checked = state.gradient.enabled;
+        gradientHeightInput.value = state.gradient.height;
+        gradientAlphaInput.value = state.gradient.alpha;
+        mainBgBoxEnabledInput.checked = state.mainBgBox.enabled;
+        mainBgBoxColorInput.value = state.mainBgBox.color;
+        mainBgBoxAlphaInput.value = state.mainBgBox.alpha;
+        mainUnderlineEnabledInput.checked = state.underline.mainEnabled;
+        arrowEnabledInput.checked = state.arrow.enabled;
+
+        // 가이드
+        gridEnabledInput.checked = state.guides.grid;
+        guidesEnabledInput.checked = state.guides.guides;
+        importantAreaEnabledInput.checked = state.guides.importantArea;
+        snapEnabledInput.checked = state.guides.snap;
+
+        // 저장
+        jpgQualityInput.value = state.export.jpgQuality;
+        document.querySelectorAll('input[name="export-res"]').forEach(r => {
+            r.checked = parseInt(r.value, 10) === state.export.resolution;
+        });
+
+        // 언어 버튼
+        langToggleBtn.textContent = state.language === 'ko' ? 'KR' : 'EN';
+    }
+
+    // ==========================
+    // 탭 전환
+    // ==========================
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabId = btn.getAttribute('data-tab');
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.control-group').forEach(g => g.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+        });
+    });
+
+    // 다크/라이트 모드
+    document.getElementById('toggle-mode').addEventListener('click', () => {
+        const root = document.documentElement;
+        root.classList.toggle('light-mode');
+        const icon = document.getElementById('toggle-icon');
+        if (root.classList.contains('light-mode')) {
+            icon.src = 'https://navercorp.com/img/common/ic-darkmode-on.png';
+        } else {
+            icon.src = 'https://navercorp.com/img/common/ic-lightmode-w.svg';
+        }
+        drawAll();
+    });
+
+    // 리다이렉트
+    document.getElementById('redirect-button').addEventListener('click', () => {
+        window.location.href = 'https://jisungeda55.github.io/imageplus/imagex';
+    });
+
+    // ==========================
+    // 내보내기용 깨끗한 렌더링 (선택 박스/가이드 제외)
+    // ==========================
+    function renderCleanFrameForExport() {
+        // 현재 편집 상태 백업
+        const prevActive = state.activeElement;
+        const prevGuides = { ...state.guides };
+        const prevArrow = state.arrow.enabled;
+
+        // 선택 박스 & 가이드 & 화살표 잠시 비활성화
+        state.activeElement = null;
+        state.guides.grid = false;
+        state.guides.guides = false;
+        state.guides.importantArea = false;
+        state.arrow.enabled = false;
+
+        // 이 상태로 한 번 그리기 (캔버스에는 깨끗한 썸네일만 보이게 됨)
+        drawAll();
+
+        // restore 함수를 리턴해서, 나중에 다시 상태 복구
+        return () => {
+            state.activeElement = prevActive;
+            state.guides = prevGuides;
+            state.arrow.enabled = prevArrow;
+            drawAll(); // 편집용 화면 다시 그리기
+        };
+    }
+
+    // ==========================
+    // 저장 (PNG / JPG)
+    // ==========================
+    function exportCanvasAs(type) {
+        // 1) 선택 박스/가이드 제거한 상태로 한 프레임 렌더링
+        const restore = renderCleanFrameForExport();
+
+        // 2) 그 결과를 임시 캔버스로 스케일링 복사
+        const targetH = state.export.resolution;
+        const ratio = canvas.width / canvas.height;
+        const targetW = targetH * ratio;
+
+        const off = document.createElement('canvas');
+        off.width = targetW;
+        off.height = targetH;
+        const octx = off.getContext('2d');
+        octx.drawImage(canvas, 0, 0, targetW, targetH);
+
+        const now = new Date();
+        const timeString = `${now.getFullYear().toString().slice(2)}.${(now.getMonth() + 1).toString().padStart(2, '0')}.${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}`;
+
+        // 3) 파일 생성 (offscreen 캔버스 기준이라 이후 restore의 영향 없음)
+        if (type === 'png') {
+            off.toBlob((blob) => {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `${timeString}.png`;
+                a.click();
+            }, 'image/png');
+        } else if (type === 'jpg') {
+            off.toBlob((blob) => {
+                const mb = (blob.size / 1024 / 1024).toFixed(2);
+                fileSizeWarning.style.display = 'block';
+                fileSizeWarning.textContent = `압축 저장 완료: ${mb}MB`;
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `${timeString}.jpg`;
+                a.click();
+            }, 'image/jpeg', state.export.jpgQuality);
+        }
+
+        // 4) 편집용 상태 복구 (초록 박스 & 가이드 다시 보이게)
+        restore();
+    }
+
+    savePngButton.addEventListener('click', () => {
+        exportCanvasAs('png');
+    });
+
+    saveJpgButton.addEventListener('click', () => {
+        exportCanvasAs('jpg');
+    });
+
+    // ==========================
+    // 초기 설정
+    // ==========================
+    function init() {
+        subTextInput.value = state.subText.text;
+        syncUIFromState();
+        refreshRecentProjectsUI();
+        loadFromLocalStorage();
+        pushHistory();
+        drawAll();
+    }
+
+    init();
+</script>
+</body>
+</html>
